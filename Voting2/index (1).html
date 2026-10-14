@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>議席数ダッシュボード</title>
+<style>
+  :root {
+    --bg: #0e1420;
+    --card: #171f2e;
+    --card2: #1d2739;
+    --line: #2a3549;
+    --text: #ffffff;
+    --muted: #c3cede;
+    --accent: #4f8cff;
+    --accent2: #7c5cff;
+    --ok: #33c48d;
+    --warn: #ffb020;
+    --danger: #ff5c6c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif;
+    background: radial-gradient(1200px 700px at 50% -10%, #1b2740 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 18px 60px; }
+  header.top { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.35); flex-wrap: wrap; }
+  header.top .brand { display: flex; flex-direction: column; gap: 2px; }
+  header.top h1 { font-size: 22px; margin: 0; letter-spacing: .04em; }
+  header.top .sub { color: var(--muted); font-size: 13px; }
+
+  .panel {
+    background: linear-gradient(180deg, var(--card) 0%, #141b28 100%);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 14px; letter-spacing: .03em; display: flex; align-items: center; gap: 8px; }
+  .panel h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px 4px; }
+  #semicircle { width: 100%; max-width: 640px; height: auto; display: block; }
+
+  .stats { display: flex; gap: 14px; width: 100%; margin-top: 8px; flex-wrap: wrap; }
+  .stat {
+    flex: 1 1 0; min-width: 110px; background: var(--card2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .stat .k { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+  .stat .v { font-size: 26px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat.seats .v { color: var(--accent); }
+  .stat.cap .v { color: var(--accent2); }
+  .stat.rem .v { color: var(--ok); }
+  .stat.over .v { color: var(--danger); }
+
+  .members { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 14px; }
+  .camp-title {
+    font-size: 13px; font-weight: 700; letter-spacing: .08em; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 10px; color: #fff;
+  }
+  .camp-title .cnt { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .camp-title .ln { flex: 1; height: 1px; background: var(--line); }
+  .camp-scroll {
+    display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;
+  }
+  .camp-scroll::-webkit-scrollbar { height: 8px; }
+  .camp-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .camp-empty { color: var(--muted); font-size: 12px; padding: 8px 0; }
+  .loading { color: var(--muted); opacity: .75; animation: loadpulse 1.4s ease-in-out infinite; }
+  @keyframes loadpulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+  .pbox {
+    position: relative; flex: 0 0 auto; width: 100px; height: 150px; border-radius: 12px;
+    overflow: hidden; border: 2px solid var(--accent); background: #0f1623;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 6px 8px; box-sizing: border-box;
+  }
+  .pbox .avatar {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100px;
+    background: #0f1623; image-rendering: pixelated; object-fit: cover;
+  }
+  .pbox .bname {
+    position: relative; color: #fff; font-weight: 700; font-size: 13px; line-height: 1.15;
+    word-break: break-word; text-shadow: 0 2px 6px rgba(0,0,0,.95);
+  }
+  .pbox .bseats {
+    position: relative; color: var(--muted); font-size: 12px; font-weight: 700;
+    margin-top: 2px; text-shadow: 0 2px 6px rgba(0,0,0,.95);
+  }
+
+  .banner { border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .banner.show { display: block; }
+  .banner.err { background: rgba(255,92,108,.12); border: 1px solid rgba(255,92,108,.4); color: #ffb3bb; }
+
+  .live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .live .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(51,196,141,.5);} 70%{box-shadow:0 0 0 8px rgba(51,196,141,0);} 100%{box-shadow:0 0 0 0 rgba(51,196,141,0);} }
+  [hidden] { display: none !important; }
+
+  /* 内閣（議席名簿と同じデザイン） */
+  #cabinet { margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>マタク鯖衆議院</h1>
+      <span class="sub">半円扇型ビュー / 議席情報</span>
+    </div>
+    <span class="live" style="margin-left:auto" id="live"><span class="pulse"></span>読み込み中...</span>
+  </header>
+
+  <section class="panel stage">
+    <div id="error" class="banner err"></div>
+    <svg id="semicircle" viewBox="0 0 640 350" role="img" aria-label="議席の半円図"></svg>
+    <div class="stats">
+      <div class="stat seats"><div class="k">議席数</div><div class="v" id="stat-seats">&hellip;</div></div>
+      <div class="stat cap"><div class="k">定員</div><div class="v" id="stat-cap">&hellip;</div></div>
+      <div class="stat rem" id="stat-rem-box"><div class="k">残席</div><div class="v" id="stat-rem">&hellip;</div></div>
+    </div>
+    <div class="members" id="members"><div class="camp-empty loading">読み込み中...</div></div>
+    <div class="members" id="cabinet"><div class="camp-empty loading">読み込み中...</div></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DIET_URL = "http://n3.host.ringonw.com:3315/diet.json";
+  var state = { seats: 0, capacity: 0, members: [], primeMinister: "", cabinet: [] };
+
+  var PALETTE = ["#4f8cff", "#ff5c6c", "#33c48d", "#ffb020", "#7c5cff",
+                 "#00c2d1", "#ff8a3d", "#e45cff", "#8bc34a", "#f44336"];
+
+  // ---------- 半円の描画 ----------
+  function polar(cx, cy, r, deg) {
+    var rad = deg * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
+  }
+  function sectorPath(cx, cy, rIn, rOut, a0, a1) {
+    var steps = Math.max(2, Math.ceil(Math.abs(a0 - a1) / 2));
+    var pts = [], i, a;
+    for (i = 0; i <= steps; i++) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, rOut, a));
+    }
+    for (i = steps; i >= 0; i--) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, rIn, a));
+    }
+    var d = "M " + pts[0].x.toFixed(2) + " " + pts[0].y.toFixed(2);
+    for (i = 1; i < pts.length; i++) {
+      d += " L " + pts[i].x.toFixed(2) + " " + pts[i].y.toFixed(2);
+    }
+    return d + " Z";
+  }
+
+  function lighten(hex, amount) {
+    var c = (hex || "#4f8cff").replace("#", "");
+    if (c.length !== 6) c = "4f8cff";
+    var r = parseInt(c.substr(0, 2), 16);
+    var g = parseInt(c.substr(2, 2), 16);
+    var b = parseInt(c.substr(4, 2), 16);
+    r = Math.round(r + (255 - r) * amount);
+    g = Math.round(g + (255 - g) * amount);
+    b = Math.round(b + (255 - b) * amount);
+    return "#" + [r, g, b].map(function (v) {
+      return ("0" + v.toString(16)).slice(-2);
+    }).join("");
+  }
+
+  function escapeXmlText(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  // 表示用: 先頭の「.」と末尾の数字群を省略
+  function cleanName(name) {
+    return String(name == null ? "" : name)
+      .replace(/^\.+/, "")
+      .replace(/[0-9]+$/, "");
+  }
+
+  function renderChart(members, capacity, progress) {
+    var svg = document.getElementById("semicircle");
+    var W = 640, H = 350, cx = W / 2, cy = H - 18;
+    var rOut = 288, rIn = 120;
+    var rMid = (rIn + rOut) / 2;
+    var p = progress == null ? 1 : progress;
+    var out = [];
+
+    out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 0) +
+             '" fill="#161f2e" stroke="#22304a" stroke-width="1"/>');
+
+    var total = members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+    if (total > 0) {
+      var pm = members.filter(function (m) { return m.isPM; })[0] || null;
+      var opposition = members.filter(function (m) { return !m.isPM && (m.seats | 0) > 0; })
+                              .sort(function (a, b) { return a.seats - b.seats; });
+      var labels = [];
+      var done = p >= 1;
+
+      function labelAt(midA, m) {
+        var seats = m.seats | 0;
+        var small = seats <= 20;
+        var fs = small ? 14 : 26;
+        var fs2 = small ? 11 : 18;
+        var dy1 = small ? -9 : -13;
+        var dy2 = small ? 11 : 17;
+        var pos = polar(cx, cy, rMid, midA);
+        var x = pos.x.toFixed(2);
+        labels.push('<text x="' + x + '" y="' + (pos.y + dy1).toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central"' +
+                 ' fill="#ffffff" font-size="' + fs + '" font-weight="700">' +
+                 escapeXmlText(m.name) + '</text>');
+        labels.push('<text x="' + x + '" y="' + (pos.y + dy2).toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central"' +
+                 ' fill="#c3cede" font-size="' + fs2 + '" font-weight="700">' +
+                 seats + '</text>');
+      }
+
+      // 野党: 右端(0)から左へ伸びる（右に行くほど議席が少ない）
+      var start = 0;
+      var fStart = 0;
+      opposition.forEach(function (m) {
+        var span = 180 * (m.seats | 0) / total;
+        var fEnd = fStart + span;
+        var end = start + span * p;
+        var color = m.color || "#4f8cff";
+        out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, end, start) +
+                 '" fill="' + color + '" stroke="' + lighten(color, 0.6) +
+                 '" stroke-width="5" stroke-linejoin="round"/>');
+        if (m.name && done) {
+          labelAt((fStart + fEnd) / 2, m);
+        }
+        start = end;
+        fStart = fEnd;
+      });
+
+      // 総理大臣: 左端(180)から右へ伸びる
+      if (pm) {
+        var pmSeats = Math.max(0, pm.seats | 0);
+        if (pmSeats > 0) {
+          var pmSpan = 180 * pmSeats / total;
+          var color = pm.color || "#4f8cff";
+          out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 180 - pmSpan * p) +
+                   '" fill="' + color + '" stroke="' + lighten(color, 0.6) +
+                   '" stroke-width="5" stroke-linejoin="round"/>');
+          if (pm.name && done) {
+            labelAt(180 - pmSpan / 2, pm);
+          }
+        }
+      }
+      out = out.concat(labels);
+    }
+
+    out.push('<text x="' + cx + '" y="' + (cy - 44) + '" text-anchor="middle" fill="#c3b2ff" ' +
+             'font-size="58" font-weight="800" style="font-variant-numeric:tabular-nums">' + capacity + '</text>');
+    out.push('<text x="' + cx + '" y="' + (cy - 16) + '" text-anchor="middle" fill="#93a1b8" ' +
+             'font-size="14" letter-spacing="4">定員</text>');
+
+    svg.innerHTML = out.join("");
+  }
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  var chartRaf = null;
+  function animateChart() {
+    if (chartRaf) cancelAnimationFrame(chartRaf);
+    var start = null;
+    var dur = 1200;
+    function step(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      renderChart(state.members, state.capacity, easeOutCubic(t));
+      if (t < 1) { chartRaf = requestAnimationFrame(step); }
+      else { chartRaf = null; }
+    }
+    chartRaf = requestAnimationFrame(step);
+  }
+
+  function makeBox(m, subtitle) {
+    var d = document.createElement("div");
+    d.className = "pbox";
+    d.style.borderColor = m.color || "#4f8cff";
+
+    if (m.id) {
+      var img = document.createElement("img");
+      img.className = "avatar";
+      img.src = "https://mc-heads.net/avatar/" + encodeURIComponent(m.id) + "/128";
+      img.alt = "";
+      img.loading = "lazy";
+      d.appendChild(img);
+    }
+
+    var nm = document.createElement("div");
+    nm.className = "bname";
+    nm.textContent = m.name || "名称未設定";
+    d.appendChild(nm);
+
+    var st = document.createElement("div");
+    st.className = "bseats";
+    st.textContent = subtitle != null ? subtitle : (m.seats | 0) + "議席";
+    d.appendChild(st);
+
+    return d;
+  }
+
+  function renderMembers(members) {
+    var root = document.getElementById("members");
+    root.innerHTML = "";
+    var total = members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+
+    var camp = document.createElement("div");
+    camp.className = "camp";
+
+    var title = document.createElement("div");
+    title.className = "camp-title";
+    var lbl = document.createElement("span");
+    lbl.textContent = "議員";
+    var cnt = document.createElement("span");
+    cnt.className = "cnt";
+    cnt.textContent = members.length + "名 / " + total + "議席";
+    var ln = document.createElement("span");
+    ln.className = "ln";
+    title.appendChild(lbl);
+    title.appendChild(cnt);
+    title.appendChild(ln);
+    camp.appendChild(title);
+
+    var scroll = document.createElement("div");
+    scroll.className = "camp-scroll";
+    if (members.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "camp-empty";
+      empty.textContent = "議員が登録されていません。";
+      scroll.appendChild(empty);
+    } else {
+      members.forEach(function (m) { scroll.appendChild(makeBox(m)); });
+    }
+    camp.appendChild(scroll);
+    root.appendChild(camp);
+  }
+
+  function renderCabinet() {
+    var root = document.getElementById("cabinet");
+    root.innerHTML = "";
+
+    var cards = [];
+    var seen = {};
+    var pm = state.members.filter(function (m) { return m.isPM; })[0] || null;
+    var pmName = cleanName(state.primeMinister);
+    if (pm) {
+      cards.push({ name: pm.name, id: pm.id, color: pm.color, role: "内閣総理大臣" });
+      seen[pm.id] = true;
+    } else if (pmName) {
+      cards.push({ name: pmName, id: "", color: "#7c5cff", role: "内閣総理大臣" });
+    }
+    (state.cabinet || []).forEach(function (c, i) {
+      var id = c.uuid || ("cab" + i);
+      if (seen[id]) return;
+      seen[id] = true;
+      cards.push({
+        name: cleanName(c.name) || "名称未設定",
+        id: c.uuid || "",
+        color: PALETTE[cards.length % PALETTE.length],
+        role: c.role || "閣僚"
+      });
+    });
+    if (!cards.length) return;
+
+    var camp = document.createElement("div");
+    camp.className = "camp";
+
+    var title = document.createElement("div");
+    title.className = "camp-title";
+    var lbl = document.createElement("span");
+    lbl.textContent = "内閣";
+    var cnt = document.createElement("span");
+    cnt.className = "cnt";
+    cnt.textContent = cards.length + "名";
+    var ln = document.createElement("span");
+    ln.className = "ln";
+    title.appendChild(lbl);
+    title.appendChild(cnt);
+    title.appendChild(ln);
+    camp.appendChild(title);
+
+    var scroll = document.createElement("div");
+    scroll.className = "camp-scroll";
+    cards.forEach(function (c) {
+      scroll.appendChild(makeBox(c, c.role));
+    });
+    camp.appendChild(scroll);
+    root.appendChild(camp);
+  }
+
+  function render() {
+    document.getElementById("stat-seats").textContent = state.seats;
+    document.getElementById("stat-cap").textContent = state.capacity;
+    var rem = state.capacity - state.seats;
+    var remBox = document.getElementById("stat-rem-box");
+    var remVal = document.getElementById("stat-rem");
+    if (rem < 0) {
+      remBox.className = "stat over";
+      remVal.textContent = "+" + Math.abs(rem) + " 超過";
+    } else {
+      remBox.className = "stat rem";
+      remVal.textContent = rem;
+    }
+    animateChart();
+    renderMembers(state.members);
+    renderCabinet();
+  }
+
+  function showError(message) {
+    var el = document.getElementById("error");
+    el.textContent = message;
+    el.className = "banner show err";
+    document.getElementById("live").innerHTML = '<span class="pulse" style="background:var(--danger)"></span>読み込み失敗';
+  }
+
+  function load() {
+    fetch(DIET_URL, { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var list = (data && data.members) || [];
+        state.capacity = (data && data.totalSeats) | 0;
+        state.primeMinister = (data && data.primeMinister) || "";
+        state.cabinet = (data && data.cabinet) || [];
+        var pmKey = cleanName(state.primeMinister);
+        state.members = list.map(function (m, i) {
+          var name = cleanName(m.name) || "名称未設定";
+          return {
+            name: name,
+            color: PALETTE[i % PALETTE.length],
+            seats: m.seats | 0,
+            isPM: !!pmKey && name === pmKey,
+            id: m.uuid || ("m" + i)
+          };
+        });
+        state.members.sort(function (a, b) { return b.seats - a.seats; });
+        state.seats = state.members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+        document.getElementById("error").className = "banner";
+        document.getElementById("live").innerHTML = '<span class="pulse"></span>最終更新 ' +
+          new Date().toLocaleTimeString("ja-JP");
+        render();
+      })
+      .catch(function () {
+        showError("diet.json の読み込みに失敗しました。");
+      });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
