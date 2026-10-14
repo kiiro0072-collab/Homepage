@@ -131,7 +131,11 @@
 (function () {
   "use strict";
 
-  var DIET_URL = "http://n3.host.ringonw.com:3315/diet.json";
+  var DIET_URLS = [
+    "./diet.json",
+    "http://n3.host.ringonw.com:3315/diet.json",
+    "https://r.jina.ai/http://n3.host.ringonw.com:3315/diet.json"
+  ];
   var state = { seats: 0, capacity: 0, members: [], primeMinister: "", cabinet: [] };
 
   var PALETTE = ["#4f8cff", "#ff5c6c", "#33c48d", "#ffb020", "#7c5cff",
@@ -426,38 +430,64 @@
     document.getElementById("live").innerHTML = '<span class="pulse" style="background:var(--danger)"></span>読み込み失敗';
   }
 
-  function load() {
-    fetch(DIET_URL, { cache: "no-store" })
+  // 前後にテキストが付いた JSON（r.jina.ai などのプロキシ応答）でも解析できるようにする
+  function parseJsonLoose(text) {
+    if (text == null) throw new Error("empty response");
+    var s = String(text).trim();
+    try { return JSON.parse(s); } catch (e) { /* fall through */ }
+    var a = s.indexOf("{");
+    var b = s.lastIndexOf("}");
+    if (a >= 0 && b > a) return JSON.parse(s.slice(a, b + 1));
+    throw new Error("invalid json");
+  }
+
+  function fetchJson(url) {
+    return fetch(url, { cache: "no-store" })
       .then(function (res) {
         if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
+        return res.text();
       })
-      .then(function (data) {
-        var list = (data && data.members) || [];
-        state.capacity = (data && data.totalSeats) | 0;
-        state.primeMinister = (data && data.primeMinister) || "";
-        state.cabinet = (data && data.cabinet) || [];
-        var pmKey = cleanName(state.primeMinister);
-        state.members = list.map(function (m, i) {
-          var name = cleanName(m.name) || "名称未設定";
-          return {
-            name: name,
-            color: PALETTE[i % PALETTE.length],
-            seats: m.seats | 0,
-            isPM: !!pmKey && name === pmKey,
-            id: m.uuid || ("m" + i)
-          };
-        });
-        state.members.sort(function (a, b) { return b.seats - a.seats; });
-        state.seats = state.members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
-        document.getElementById("error").className = "banner";
-        document.getElementById("live").innerHTML = '<span class="pulse"></span>最終更新 ' +
-          new Date().toLocaleTimeString("ja-JP");
-        render();
-      })
-      .catch(function () {
+      .then(function (text) { return parseJsonLoose(text); });
+  }
+
+  function applyData(data) {
+    var list = (data && data.members) || [];
+    state.capacity = (data && data.totalSeats) | 0;
+    state.primeMinister = (data && data.primeMinister) || "";
+    state.cabinet = (data && data.cabinet) || [];
+    var pmKey = cleanName(state.primeMinister);
+    state.members = list.map(function (m, i) {
+      var name = cleanName(m.name) || "名称未設定";
+      return {
+        name: name,
+        color: PALETTE[i % PALETTE.length],
+        seats: m.seats | 0,
+        isPM: !!pmKey && name === pmKey,
+        id: m.uuid || ("m" + i)
+      };
+    });
+    state.members.sort(function (a, b) { return b.seats - a.seats; });
+    state.seats = state.members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+  }
+
+  function load() {
+    var i = 0;
+    function attempt() {
+      if (i >= DIET_URLS.length) {
         showError("diet.json の読み込みに失敗しました。");
-      });
+        return;
+      }
+      fetchJson(DIET_URLS[i++])
+        .then(function (data) {
+          applyData(data);
+          document.getElementById("error").className = "banner";
+          document.getElementById("live").innerHTML = '<span class="pulse"></span>最終更新 ' +
+            new Date().toLocaleTimeString("ja-JP");
+          render();
+        })
+        .catch(function () { attempt(); });
+    }
+    attempt();
   }
 
   load();
