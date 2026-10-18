@@ -204,9 +204,13 @@
 
     var total = parties.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
     if (total > 0) {
-      var ruling = parties.filter(function (m) { return m.ruling && (m.seats | 0) > 0; });
-      var others = parties.filter(function (m) { return !m.ruling && (m.seats | 0) > 0; })
+      var isIndependent = function (m) { return m.name === "無所属"; };
+      // 無所属は一番右、与党は左
+      var independent = parties.filter(function (m) { return isIndependent(m) && (m.seats | 0) > 0; });
+      var ruling = parties.filter(function (m) { return !isIndependent(m) && m.ruling && (m.seats | 0) > 0; });
+      var others = parties.filter(function (m) { return !isIndependent(m) && !m.ruling && (m.seats | 0) > 0; })
                           .sort(function (a, b) { return a.seats - b.seats; });
+      var rightBlocks = independent.concat(others);
       var labels = [];
       var done = p >= 1;
 
@@ -232,10 +236,10 @@
                  seats + '</text>');
       }
 
-      // 野党: 右端(0)から左へ（議席の少ない順）
+      // 無所属 → 野党: 右端(0)から左へ（無所属が一番右、以降は議席の少ない順）
       var start = 0;
       var fStart = 0;
-      others.forEach(function (m, i) {
+      rightBlocks.forEach(function (m, i) {
         var span = 180 * (m.seats | 0) / total;
         var fEnd = fStart + span;
         var end = start + span * p;
@@ -484,9 +488,11 @@
     });
     state.members.sort(function (a, b) { return b.seats - a.seats; });
     state.seats = state.members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
-    var hasPartySeats = state.parties.some(function (p) { return (p.seats | 0) > 0; });
-    if (!hasPartySeats && state.seats > 0) {
-      state.parties = [{ name: "無所属", seats: state.seats, ruling: false, color: PALETTE[0] }];
+    // 総議席と政党議席合計の差は「無所属」にする
+    var partySeats = state.parties.reduce(function (a, p) { return a + (p.seats | 0); }, 0);
+    var independent = state.capacity - partySeats;
+    if (independent > 0) {
+      state.parties.push({ name: "無所属", seats: independent, ruling: false, color: "#8a97ab" });
     }
   }
 
