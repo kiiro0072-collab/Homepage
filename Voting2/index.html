@@ -204,11 +204,9 @@
 
     var total = parties.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
     if (total > 0) {
-      // 与党を先頭（右端）に、残りは議席の少ない順に左へ
       var ruling = parties.filter(function (m) { return m.ruling && (m.seats | 0) > 0; });
       var others = parties.filter(function (m) { return !m.ruling && (m.seats | 0) > 0; })
                           .sort(function (a, b) { return a.seats - b.seats; });
-      var ordered = ruling.concat(others);
       var labels = [];
       var done = p >= 1;
 
@@ -234,10 +232,10 @@
                  seats + '</text>');
       }
 
-      // 右端(0)から左へ: 与党 → 野党（議席の少ない順）
+      // 野党: 右端(0)から左へ（議席の少ない順）
       var start = 0;
       var fStart = 0;
-      ordered.forEach(function (m, i) {
+      others.forEach(function (m, i) {
         var span = 180 * (m.seats | 0) / total;
         var fEnd = fStart + span;
         var end = start + span * p;
@@ -250,6 +248,24 @@
         }
         start = end;
         fStart = fEnd;
+      });
+
+      // 与党: 左端(180)から右へ（左に固める）
+      var lStart = 180;
+      var lfStart = 180;
+      ruling.forEach(function (m, i) {
+        var span = 180 * (m.seats | 0) / total;
+        var lfEnd = lfStart - span;
+        var lEnd = lStart - span * p;
+        var color = m.color || PALETTE[i % PALETTE.length];
+        out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, lStart, lEnd) +
+                 '" fill="' + color + '" stroke="' + lighten(color, 0.6) +
+                 '" stroke-width="5" stroke-linejoin="round"/>');
+        if (m.name && done) {
+          labelAt((lfStart + lfEnd) / 2, m, span);
+        }
+        lStart = lEnd;
+        lfStart = lfEnd;
       });
       out = out.concat(labels);
     }
