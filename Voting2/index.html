@@ -136,7 +136,7 @@
     "http://n3.host.ringonw.com:3315/diet.json",
     "https://r.jina.ai/http://n3.host.ringonw.com:3315/diet.json"
   ];
-  var state = { seats: 0, capacity: 0, members: [], primeMinister: "", cabinet: [] };
+  var state = { seats: 0, capacity: 0, members: [], primeMinister: "", cabinet: [], parties: [], rulingParty: "" };
 
   var PALETTE = ["#4f8cff", "#ff5c6c", "#33c48d", "#ffb020", "#7c5cff",
                  "#00c2d1", "#ff8a3d", "#e45cff", "#8bc34a", "#f44336"];
@@ -191,7 +191,7 @@
       .replace(/[0-9]+$/, "");
   }
 
-  function renderChart(members, capacity, progress) {
+  function renderChart(parties, capacity, progress) {
     var svg = document.getElementById("semicircle");
     var W = 640, H = 350, cx = W / 2, cy = H - 18;
     var rOut = 288, rIn = 120;
@@ -202,65 +202,55 @@
     out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 0) +
              '" fill="#161f2e" stroke="#22304a" stroke-width="1"/>');
 
-    var total = members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+    var total = parties.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
     if (total > 0) {
-      var pm = members.filter(function (m) { return m.isPM; })[0] || null;
-      var opposition = members.filter(function (m) { return !m.isPM && (m.seats | 0) > 0; })
-                              .sort(function (a, b) { return a.seats - b.seats; });
+      // 与党を先頭（右端）に、残りは議席の少ない順に左へ
+      var ruling = parties.filter(function (m) { return m.ruling && (m.seats | 0) > 0; });
+      var others = parties.filter(function (m) { return !m.ruling && (m.seats | 0) > 0; })
+                          .sort(function (a, b) { return a.seats - b.seats; });
+      var ordered = ruling.concat(others);
       var labels = [];
       var done = p >= 1;
 
-      function labelAt(midA, m) {
+      function labelAt(midA, m, span) {
         var seats = m.seats | 0;
-        var small = seats <= 20;
-        var fs = small ? 14 : 26;
-        var fs2 = small ? 11 : 18;
-        var dy1 = small ? -9 : -13;
-        var dy2 = small ? 11 : 17;
+        var name = m.name || "";
+        // 区画の弦の長さに合わせて文字サイズを自動調整
+        var chord = 2 * rMid * Math.abs(Math.sin((span || 180) * Math.PI / 360));
+        var maxW = Math.max(44, chord * 0.92);
+        var fs = Math.max(9, Math.min(22, maxW / Math.max(1, name.length * 0.62)));
+        var fs2 = Math.max(9, Math.min(15, fs * 0.82));
+        var dy1 = -(fs * 0.6 + fs2 * 0.3);
+        var dy2 = fs * 0.55 + fs2 * 0.35;
         var pos = polar(cx, cy, rMid, midA);
         var x = pos.x.toFixed(2);
         labels.push('<text x="' + x + '" y="' + (pos.y + dy1).toFixed(2) +
                  '" text-anchor="middle" dominant-baseline="central"' +
-                 ' fill="#ffffff" font-size="' + fs + '" font-weight="700">' +
-                 escapeXmlText(m.name) + '</text>');
+                 ' fill="#ffffff" font-size="' + fs.toFixed(1) + '" font-weight="700">' +
+                 escapeXmlText(name) + '</text>');
         labels.push('<text x="' + x + '" y="' + (pos.y + dy2).toFixed(2) +
                  '" text-anchor="middle" dominant-baseline="central"' +
-                 ' fill="#c3cede" font-size="' + fs2 + '" font-weight="700">' +
+                 ' fill="#c3cede" font-size="' + fs2.toFixed(1) + '" font-weight="700">' +
                  seats + '</text>');
       }
 
-      // 野党: 右端(0)から左へ伸びる（右に行くほど議席が少ない）
+      // 右端(0)から左へ: 与党 → 野党（議席の少ない順）
       var start = 0;
       var fStart = 0;
-      opposition.forEach(function (m) {
+      ordered.forEach(function (m, i) {
         var span = 180 * (m.seats | 0) / total;
         var fEnd = fStart + span;
         var end = start + span * p;
-        var color = m.color || "#4f8cff";
+        var color = m.color || PALETTE[i % PALETTE.length];
         out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, end, start) +
                  '" fill="' + color + '" stroke="' + lighten(color, 0.6) +
                  '" stroke-width="5" stroke-linejoin="round"/>');
         if (m.name && done) {
-          labelAt((fStart + fEnd) / 2, m);
+          labelAt((fStart + fEnd) / 2, m, span);
         }
         start = end;
         fStart = fEnd;
       });
-
-      // 総理大臣: 左端(180)から右へ伸びる
-      if (pm) {
-        var pmSeats = Math.max(0, pm.seats | 0);
-        if (pmSeats > 0) {
-          var pmSpan = 180 * pmSeats / total;
-          var color = pm.color || "#4f8cff";
-          out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 180 - pmSpan * p) +
-                   '" fill="' + color + '" stroke="' + lighten(color, 0.6) +
-                   '" stroke-width="5" stroke-linejoin="round"/>');
-          if (pm.name && done) {
-            labelAt(180 - pmSpan / 2, pm);
-          }
-        }
-      }
       out = out.concat(labels);
     }
 
@@ -282,7 +272,7 @@
     function step(now) {
       if (start === null) start = now;
       var t = Math.min(1, (now - start) / dur);
-      renderChart(state.members, state.capacity, easeOutCubic(t));
+      renderChart(state.parties, state.capacity, easeOutCubic(t));
       if (t < 1) { chartRaf = requestAnimationFrame(step); }
       else { chartRaf = null; }
     }
@@ -455,6 +445,16 @@
     state.capacity = (data && data.totalSeats) | 0;
     state.primeMinister = (data && data.primeMinister) || "";
     state.cabinet = (data && data.cabinet) || [];
+    state.rulingParty = (data && data.rulingParty) || "";
+    state.parties = ((data && data.parties) || []).map(function (p, i) {
+      var name = p && p.name ? String(p.name) : "無所属";
+      return {
+        name: name,
+        seats: (p && p.seats) | 0,
+        ruling: !!(p && p.ruling) || (!!state.rulingParty && name === state.rulingParty),
+        color: PALETTE[i % PALETTE.length]
+      };
+    });
     var pmKey = cleanName(state.primeMinister);
     state.members = list.map(function (m, i) {
       var name = cleanName(m.name) || "名称未設定";
@@ -468,6 +468,10 @@
     });
     state.members.sort(function (a, b) { return b.seats - a.seats; });
     state.seats = state.members.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+    var hasPartySeats = state.parties.some(function (p) { return (p.seats | 0) > 0; });
+    if (!hasPartySeats && state.seats > 0) {
+      state.parties = [{ name: "無所属", seats: state.seats, ruling: false, color: PALETTE[0] }];
+    }
   }
 
   function load() {
