@@ -103,6 +103,32 @@
   .emp img { width: 20px; height: 20px; border-radius: 50%; image-rendering: pixelated; background: #0f1623; flex: 0 0 auto; }
   .emp span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  .co-stock { border-top: 1px solid var(--line); padding-top: 10px; }
+  .co-stock > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    user-select: none; outline: none; padding: 2px 0;
+  }
+  .co-stock > summary::-webkit-details-marker { display: none; }
+  .co-stock > summary:hover .st-title { color: var(--accent); }
+  .st-title { font-weight: 700; font-size: 12px; letter-spacing: .05em; color: var(--text); transition: color .15s; }
+  .st-price { margin-left: auto; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .st-price small { font-size: 10px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .st-chg { font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .st-chg.up { color: var(--ok); }
+  .st-chg.down { color: var(--danger); }
+  .st-caret { color: var(--muted); font-size: 11px; transition: transform .18s ease; }
+  .co-stock[open] .st-caret { transform: rotate(180deg); }
+  .stock-chart { margin-top: 10px; }
+  .stock-svg {
+    width: 100%; height: 96px; display: block; background: #0f1623;
+    border: 1px solid var(--line); border-radius: 10px;
+  }
+  .stock-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--muted); margin-top: 7px; }
+  .stock-meta b { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 700; }
+  .stock-meta b.up { color: var(--ok); }
+  .stock-meta b.down { color: var(--danger); }
+  .stock-empty { font-size: 12px; color: var(--muted); padding: 10px 0; }
+
   .loading { color: var(--muted); opacity: .75; animation: loadpulse 1.4s ease-in-out infinite; }
   @keyframes loadpulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
   .empty { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
@@ -114,9 +140,9 @@
   <header class="top">
     <div class="brand">
       <h1>マタク鯖 会社一覧</h1>
-      <span class="sub">会社情報 / 社長・従業員・ショップ・所持金</span>
+      <span class="sub">会社情報 / 社長・従業員・ショップ・所持金・株価</span>
     </div>
-    <a class="nav-link" href="./index.html">議席ダッシュボード</a>
+    <a class="nav-link" href="../index.html">議席ダッシュボード</a>
     <span class="live" id="live"><span class="pulse"></span>読み込み中...</span>
   </header>
 
@@ -147,6 +173,7 @@
   "use strict";
 
   var COMPANY_URLS = [
+    "../company.json",
     "./company.json",
     "http://n3.host.ringonw.com:3315/company.json",
     "https://r.jina.ai/http://n3.host.ringonw.com:3315/company.json"
@@ -201,7 +228,8 @@
         employees: employees,
         employeeCount: (c && c.employeeCount) | 0 || employees.length,
         shops: shops,
-        shopCount: shops.length
+        shopCount: shops.length,
+        stock: (c && c.stock) || null
       };
     });
   }
@@ -228,6 +256,61 @@
            'onerror="this.style.visibility=\'hidden\'"><span>' + esc(name) + '</span></span>';
   }
 
+  function stockInfo(stock) {
+    stock = stock || {};
+    var hist = (stock.history || []).filter(function (p) {
+      return p && typeof p.price === "number" && isFinite(p.price);
+    }).sort(function (a, b) { return (a.time || 0) - (b.time || 0); });
+    var values = hist.map(function (p) { return p.price; });
+    if (!values.length && typeof stock.price === "number" && isFinite(stock.price)) {
+      values = [stock.price];
+    }
+    var price = (typeof stock.price === "number" && isFinite(stock.price))
+      ? stock.price : (values.length ? values[values.length - 1] : 0);
+    var first = values.length ? values[0] : price;
+    var last = values.length ? values[values.length - 1] : price;
+    var chg = first ? (last - first) / first * 100 : 0;
+    var lastTime = hist.length ? hist[hist.length - 1].time : 0;
+    return { values: values, price: price, first: first, last: last, min: values.length ? Math.min.apply(null, values) : price, max: values.length ? Math.max.apply(null, values) : price, chg: chg, up: last >= first, time: lastTime };
+  }
+
+  function stockChart(stock) {
+    var s = stockInfo(stock);
+    var values = s.values;
+    if (!values.length) return '<div class="stock-empty">株価データがありません。</div>';
+
+    var W = 320, H = 96, padX = 10, padY = 12;
+    var min = s.min, max = s.max;
+    if (min === max) { min -= 1; max += 1; }
+    var n = values.length;
+    function X(i) { return padX + (n > 1 ? i * (W - 2 * padX) / (n - 1) : (W - 2 * padX) / 2); }
+    function Y(v) { return padY + (1 - (v - min) / (max - min)) * (H - 2 * padY); }
+
+    var line = "", i;
+    for (i = 0; i < n; i++) {
+      line += (i ? " L " : "M ") + X(i).toFixed(2) + " " + Y(values[i]).toFixed(2);
+    }
+    var area = line + " L " + X(n - 1).toFixed(2) + " " + (H - padY) +
+               " L " + X(0).toFixed(2) + " " + (H - padY) + " Z";
+
+    var color = s.up ? "#33c48d" : "#ff5c6c";
+    var chgTxt = (s.chg >= 0 ? "+" : "") + s.chg.toFixed(2) + "%";
+
+    var svg = '<svg class="stock-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="株価チャート">' +
+      '<path d="' + area + '" fill="' + color + '" fill-opacity="0.14"/>' +
+      '<path d="' + line + '" fill="none" stroke="' + color + '" stroke-width="2" ' +
+        'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+      '</svg>';
+
+    return '<div class="stock-chart">' + svg +
+      '<div class="stock-meta">' +
+        '<span>最高 <b>' + fmtMoney(s.max) + '</b></span>' +
+        '<span>最低 <b>' + fmtMoney(s.min) + '</b></span>' +
+        '<span>騰落 <b class="' + (s.up ? "up" : "down") + '">' + chgTxt + '</b></span>' +
+      '</div>' +
+      '</div>';
+  }
+
   function card(c) {
     var key = c.ownerUuid || c.owner || c.name;
     var emps = c.employees.length
@@ -252,7 +335,22 @@
           '<div class="co-emp-title">従業員一覧</div>' +
           '<div class="co-emps">' + emps + '</div>' +
         '</div>' +
+        stockBlock(c) +
       '</div>';
+  }
+
+  function stockBlock(c) {
+    var s = stockInfo(c.stock);
+    var chgTxt = (s.chg >= 0 ? "+" : "") + s.chg.toFixed(2) + "%";
+    return '<details class="co-stock">' +
+      '<summary>' +
+        '<span class="st-title">株価チャート</span>' +
+        '<span class="st-price">' + fmtMoney(s.price) + '<small>G</small></span>' +
+        '<span class="st-chg ' + (s.up ? "up" : "down") + '">' + chgTxt + '</span>' +
+        '<span class="st-caret" aria-hidden="true">▾</span>' +
+      '</summary>' +
+      stockChart(c.stock) +
+      '</details>';
   }
 
   function renderSummary(list) {
