@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MATAKUSERVER | 列島プロジェクト</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">MATAKUSERVER</a>
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html" class="active">HOME</a></li>
+          <li><a href="#join">参加方法</a></li>
+          <li><a href="#howtoplay">遊び方</a></li>
+          <li><a href="#rule">ルール</a></li>
+          <li><a href="#about">列島について</a></li>
+          <li><a href="https://kiiro0072-collab.github.io/Homepage/Voting2/" target="_blank" rel="noopener">マタク鯖衆議院</a></li>
+          <li><a href="https://kiiro0072-collab.github.io/Homepage/company/" target="_blank" rel="noopener">マタク鯖会社一覧</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="slider">
+      <div class="slides"></div>
+      <div class="slide-title">
+        <h1 class="site-title">MATAKUSERVER</h1>
+      </div>
+      <button class="slide-btn prev" aria-label="前へ">&#10094;</button>
+      <button class="slide-btn next" aria-label="次へ">&#10095;</button>
+      <div class="slide-dots"></div>
+    </section>
+
+    <section class="section" id="voting">
+      <div class="container">
+        <h2>マタク鯖衆議院</h2>
+        <div class="play-content">
+          <p>マタク鯖では議会制民主主義でサーバーを動かすことができます。</p>
+          <p><a class="join-link" href="https://kiiro0072-collab.github.io/Homepage/Voting2/" target="_blank" rel="noopener">マタク鯖衆議院はこちら</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stock">
+      <div class="container">
+        <h2>株式</h2>
+        <div class="play-content">
+          <p>このサーバーの経済では株式市場を一部取り入れています。</p>
+          <p><a class="join-link" href="https://kiiro0072-collab.github.io/Homepage/company/" target="_blank" rel="noopener">株式・会社一覧はこちら</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="join">
+      <div class="container">
+        <h2>参加方法</h2>
+        <ol class="join-steps">
+          <li class="join-step">
+            <span class="join-num">1</span>
+            <h3>Discordで認証</h3>
+            <p>サーバーのDiscordに参加して認証を完了しよう。</p>
+            <a class="join-link" href="https://discord.gg/zgQAVpTvGa" target="_blank" rel="noopener">Discord招待リンク</a>
+          </li>
+          <li class="join-step">
+            <span class="join-num">2</span>
+            <h3>マイクラに参加</h3>
+            <p>マインクラフトを起動して、下のIPでサーバーに入ろう。</p>
+            <div class="ip-toggle">
+              <button type="button" class="ip-tab" data-ipkey="java">Java版</button>
+              <button type="button" class="ip-tab" data-ipkey="bedrock">統合版</button>
+            </div>
+            <div class="ip-box" data-ipbox="java">
+              <code class="join-ip">node1.swdhst.com:2024</code>
+            </div>
+<div class="ip-box" data-ipbox="bedrock" hidden>
+              <div class="ip-field">
+                <span class="ip-label">IP</span>
+                <code class="join-ip">node1.swdhst.com</code>
+              </div>
+              <div class="ip-field">
+                <span class="ip-label">ポート</span>
+                <code class="join-ip">2026</code>
+              </div>
+            </div>
+          </li>
+          <li class="join-step">
+            <span class="join-num">3</span>
+            <h3>サーバーライフ楽しんで！</h3>
+            <p>ルールを守って、自由にサーバーライフを楽しもう！</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="howtoplay">
+      <div class="container">
+        <h2>遊び方</h2>
+        <div class="play-content">
+          <p>資源鯖で資材を集めて、<strong>自分の家</strong>を建ててみましょう。</p>
+          <p>好きな場所や、<strong>都市</strong>に建てます。</p>
+          <p>コミュニティーで楽しみたい方は<strong>都市がおすすめ！</strong></p>
+          <p>都市の一覧はDiscord内の<strong>市町村宣伝</strong>があります。</p>
+          <p>都市に参加したら、都市のルールと鯖全体のルールを守って楽しもう。</p>
+          <p class="accent">好きな場所に入ったら、そのまま家を建てましょう。しかし、<strong>地方のモチーフも参考</strong>にしましょう。<strong>荒らし的な建物・マップの大規模破壊は禁止</strong>されています。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rule">
+      <div class="container">
+        <h2>ルール</h2>
+
+        <details class="rule-ch" open>
+          <summary>1. 基本方針</summary>
+          <div class="rule-body">
+            <h4>1.1 禁止事項</h4>
+            <ul class="rule-list">
+              <li>チート、改造クライアント、不正ツール等の使用</li>
+              <li>バグや不具合の悪用</li>
+              <li>VPN・プロキシ等の接続元を秘匿して接続する行為</li>
+              <li>誹謗中傷、差別的発言、過度な挑発、ハラスメント</li>
+              <li>他人へのなりすまし</li>
+              <li>運営の正当な指示に従わない行為</li>
+              <li>運営または他の利用者へ著しい迷惑を与える行為</li>
+              <li>本サーバーの秩序を乱す行為</li>
+              <li>大規模な地形破壊
+              <li>無断PK
+              <li>SPAM(個人間の会話中、コマンド連打も含む)
+                <ul>
+                  <li>悪質な建築物の建造、生成</li>
+                </ul>
+              </li>
+              <li>その他運営が悪質だと判断された行為は個別にペナルティを付与します</li>
+            </ul>
+
+            <h4>1.2 サーバーのコンセプト</h4>
+            <p>このサーバーは日本列島を一つの開拓地として捉え、列島全体の開発を目的に運営、鯖民は活動します</p>
+            <p>自治と中央集権のバランスを重視し、プレイヤーの自主性を尊重しつつ、運営が必要な部分で介入し均衡ある競争を実現します</p>
+            <p>現代建築、又は和風建築を推奨します。各地域のテーマ、地域性にあった街作りを行い、列島全体を彩ある風景に仕上げましょう(個別対応可能)</p>
+
+            <h4>1.3 目的</h4>
+            <ul class="rule-list">
+              <li>プレイヤー同士の交流と協力を促進し、活気のあるコミュニティを形成する。</li>
+              <li><strong>政治システム（政党政治 + 比例代表制）</strong>を通じて、民主的な意思決定を実現する。</li>
+              <li>産業と経済のシステムを通じて、地方同士のつながりを強化する。</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>2. 利用規約</summary>
+          <div class="rule-body">
+            <h4>2.1 参加資格</h4>
+            <ul class="rule-list">
+              <li>マイクラサーバーに参加するためには、Discordの参加が必須となります。</li>
+              <li>年齢制限: <strong>13歳以上</strong>のプレイヤーを対象とします（運営の判断により変更する場合があります）。</li>
+            </ul>
+
+            <h4>2.2 アカウントの管理</h4>
+            <ul class="rule-list">
+              <li>1人のプレイヤーは<strong>1つのアカウントのみ</strong>を使用できます。複数アカウントの使用は禁止されています。</li>
+              <li>アカウントの貸与・譲渡は禁止されています。</li>
+            </ul>
+
+            <h4>2.3 プレイヤーの義務</h4>
+            <ul class="rule-list">
+              <li><strong>ルールの遵守:</strong> この規約およびサーバー内のルールを遵守すること。</li>
+              <li><strong>他のプレイヤーへの尊重:</strong> 他のプレイヤーの権利を尊重し、迷惑行為を行わないこと。</li>
+              <li><strong>運営の指示に従う:</strong> 運営からの指示には従うこと。</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>4. ペナルティ</summary>
+          <div class="rule-body">
+            <p>違反行為があった場合、運営の判断により以下のペナルティが課せられます。</p>
+            <table class="rule-table">
+              <thead>
+                <tr>
+                  <th>違反の程度</th>
+                  <th>ペナルティ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>軽微な違反</td>
+                  <td>警告</td>
+                </tr>
+                <tr>
+                  <td>繰り返しの違反</td>
+                  <td>一時的なサーバーからの追放（1日～7日）</td>
+                </tr>
+                <tr>
+                  <td>重大な違反</td>
+                  <td>永久追放</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>5. 運営の権限</summary>
+          <div class="rule-body">
+            <ul class="rule-list">
+              <li><strong>ルールの変更:</strong> 運営は、サーバーの状況に応じて、この規約を変更する権限を有します。</li>
+              <li><strong>緊急措置:</strong> 運営は、サーバーの運営を妨げる行為や、プレイヤーに重大な被害を与える行為に対して、緊急措置を講じる権限を有します。</li>
+              <li><strong>最終判断:</strong> この規約の解釈および運用に関する最終判断は、運営が行います。</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>6. 免責事項</summary>
+          <div class="rule-body">
+            <ul class="rule-list">
+              <li>運営は、サーバーの利用により生じたいかなる損害についても、責任を負いません。</li>
+              <li>プレイヤーは、自己の責任においてサーバーを利用するものとします。</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>7. 規約の改定</summary>
+          <div class="rule-body">
+            <ul class="rule-list">
+              <li>この規約は、運営の判断により改定される場合があります。</li>
+              <li>改定された規約は、サーバー内やDiscordなどで告知されます。</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>8. 付則</summary>
+          <div class="rule-body">
+            <h4>8.1 運営への連絡</h4>
+            <p>規約に関する質問や、違反行為の報告は<strong>質問チャンネル</strong>、又は<strong>チケットチャンネル</strong>からチケットを切ってお問い合わせください。</p>
+
+            <h4>8.2 規約の遵守</h4>
+            <ul class="rule-list">
+              <li>この規約は、サーバーに参加する全てのプレイヤーに適用されます。</li>
+              <li>規約を遵守しないプレイヤーは、ペナルティの対象となる可能性があります。</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="container">
+        <h2>列島について</h2>
+
+        <div class="about-block">
+          <h3>列島の詳細</h3>
+          <dl class="detail-list">
+            <div class="detail">
+              <dt>サイズ</dt>
+              <dd>5万 × 5万</dd>
+            </div>
+            <div class="detail">
+              <dt>木</dt>
+              <dd>あり</dd>
+            </div>
+            <div class="detail">
+              <dt>構造物</dt>
+              <dd>なし</dd>
+            </div>
+            <div class="detail">
+              <dt>地形</dt>
+              <dd>フラット上乗せ式</dd>
+            </div>
+            <div class="detail">
+              <dt>鉱石</dt>
+              <dd>なし</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="constitution">
+      <div class="container">
+        <h2>🇯🇵 マタク鯖 日本列島鯖憲法</h2>
+        <p class="constitution-sub">― 鯖民民主的議会政治規約 ―</p>
+
+        <details class="rule-ch" open>
+          <summary>前文</summary>
+          <div class="rule-body">
+            <p>マタク鯖は、鯖民相互の自由、平等及び自治を尊重し、すべての鯖民が安心して活動できる環境を維持することを目的とする。</p>
+            <p>マタク鯖における最終的な主権は鯖主に属する。</p>
+            <p>鯖主の主権のもと、鯖民による民主的な議会政治を行い、鯖民の意思を鯖政に反映させることを基本とする。</p>
+            <p>ここに、マタク鯖における民主的議会政治の基本原則を定める。</p>
+            <p class="accent">[一～四条は廃止されました欠番です]</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第一章　鯖民の権利及び義務</summary>
+          <div class="rule-body">
+            <h4>第五条　鯖民</h4>
+            <p>マタク鯖の規約に定める要件を満たした者を、鯖民とする。</p>
+
+            <h4>第六条　鯖民の権利</h4>
+            <p>すべての鯖民は、法律及び本憲法の定めるところにより、次の権利を有する。</p>
+            <ul class="rule-list">
+              <li>一　選挙に参加する権利。</li>
+              <li>二　議員に立候補する権利。</li>
+              <li>三　議会に意見を提出する権利。</li>
+              <li>四　法律案を提出する権利。</li>
+              <li>五　異議申し立てを行う権利。</li>
+              <li>六　その他、鯖政に参加する権利。</li>
+            </ul>
+
+            <h4>第七条　平等</h4>
+            <p>すべての鯖民は、政治上平等に扱われなければならない。</p>
+            <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって、政治上の権利を差別してはならない。</p>
+
+            <h4>第八条　不当な処罰の禁止</h4>
+            <p>鯖民に対して、マタク鯖規約、法律その他の明確な根拠のない処罰を行ってはならない。</p>
+
+            <h4>第九条　鯖民の義務</h4>
+            <p>鯖民は、マタク鯖規約、本憲法及び法律を尊重しなければならない。</p>
+            <p>2　鯖民は、他の鯖民の権利を尊重しなければならない。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第三章　鯖民議会</summary>
+          <div class="rule-body">
+            <h4>第十条　鯖民議会</h4>
+            <p>鯖民議会は、鯖民が民主的に意見をまとめ、マタク鯖の自治及び政治を行うための機関である。</p>
+
+            <h4>第十一条　両議院</h4>
+            <p>鯖民議会は、衆議院及び運営院の二院をもって構成する。</p>
+
+            <h4>第十二条　代表</h4>
+            <p>両議院は、本憲法及び法律に基づいて選出又は構成された議員によって組織する。</p>
+
+            <h4>第十三条　議席</h4>
+            <p>衆議院の議席総数は、100議席とする。</p>
+            <p>2　一人の議員が複数の議席を保有することを認める。</p>
+            <p>3　一人が保有できる議席数の上限その他の細則は、公職選挙法で定める。</p>
+
+            <h4>第十四条　議員及び選挙人の資格</h4>
+            <p>議員及び選挙人の資格は、マタク鯖の鯖民に与えられる。</p>
+            <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって差別してはならない。</p>
+
+            <h4>第十五条　議会の議決</h4>
+            <p>議会における議決は、原則として議員が保有する議席を単位として行う。</p>
+            <p>2　具体的な議決方法は、法律又は議会規則で定める。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第四章　衆議院</summary>
+          <div class="rule-body">
+            <h4>第十六条　衆議院議員の任期</h4>
+            <p>衆議院議員の任期は、三か月とする。</p>
+            <p>2　衆議院が解散された場合、その時点で任期を終了する。</p>
+
+            <h4>第十七条　選挙</h4>
+            <p>衆議院議員は、鯖民による選挙によって選出する。</p>
+            <p>2　選挙は、得票数に応じて議席を配分する比例的な方法を基本とする。</p>
+            <p>3　具体的な選挙方法及び議席配分方法は、選挙法で定める。</p>
+
+            <h4>第十八条　総理大臣の指名</h4>
+            <p>総理大臣は、衆議院において総理大臣候補者に賛成した議員が保有する議席の合計が最も多い候補者を基本として決定する。</p>
+            <p>2　鯖主は、前項によって決定された者を総理大臣に任命する。</p>
+
+            <h4>第十九条　総理大臣の代理</h4>
+            <p>総理大臣は、あらかじめ代理総理大臣を定めなければならない。</p>
+            <p>2　総理大臣が議会その他の公務に出席できない場合、代理総理大臣がその職務を代行する。</p>
+
+            <h4>第二十条　議会への出席</h4>
+            <p>議員は、議会に出席し、議決に参加するものとする。</p>
+            <p>2　議員が議会を欠席又は遅刻した場合、その議員が保有する議席は、その議会において棄権として扱う。</p>
+            <p>3　すべての議席が棄権となった場合、その議案は成立しない。</p>
+
+            <h4>第二十一条　議会の招集</h4>
+            <p>総理大臣及び鯖主は、必要に応じて議会を招集することができる。</p>
+
+            <h4>第二十二条　衆議院の解散</h4>
+            <p>鯖主は、衆議院を解散することができる。</p>
+            <p>2　総理大臣が自ら衆議院を解散することを決定した場合、総理大臣は辞任しなければならない。</p>
+            <p>3　衆議院が解散された場合、総理大臣が速やかに新たな選挙を行う。</p>
+
+            <h4>第二十三条　法律の制定</h4>
+            <p>衆議院は、出席議員の保有する議席の過半数の賛成により、法律案を可決することができる。</p>
+
+            <h4>第二十四条　総理大臣の不信任</h4>
+            <p>衆議院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+            <p>2　不信任決議が成立した場合、総理大臣は辞任し、新たな総理大臣を指名する。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第五章　運営院</summary>
+          <div class="rule-body">
+            <h4>第二十五条　運営院</h4>
+            <p>運営院は、マタク鯖の運営に携わる者によって構成する。</p>
+            <p>2　運営院の議席及び構成員は、法律又は運営に関する規則によって定める。</p>
+
+            <h4>第二十六条　運営院の権限</h4>
+            <p>運営院は、サーバーの運営、管理及び技術的事項について審議する権限を有する。</p>
+
+            <h4>第二十七条　運営に関する法律</h4>
+            <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方の承認を必要とする。</p>
+            <p>2　前項の法律は、両院においてそれぞれ過半数の賛成を得なければならない。</p>
+
+            <h4>第二十八条　総理大臣の不信任</h4>
+            <p>運営院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第六章　法律</summary>
+          <div class="rule-body">
+            <h4>第二十九条　法律</h4>
+            <p>法律は、本憲法及びマタク鯖規約に基づき、鯖民及びサーバーの運営に必要な具体的な規則を定めるものである。</p>
+
+            <h4>第三十条　法案の提出</h4>
+            <p>法律案は、次の者が提出することができる。</p>
+            <ul class="rule-list">
+              <li>一　衆議院議員。</li>
+              <li>二　総理大臣。</li>
+              <li>三　運営院。</li>
+              <li>四　法律で定める方法により一定数以上の鯖民の賛同を得た者。</li>
+            </ul>
+
+            <h4>第三十一条　通常法律</h4>
+            <p>通常の法律は、衆議院において出席議員の保有する議席の過半数の賛成をもって可決する。</p>
+
+            <h4>第三十二条　運営関連法</h4>
+            <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方において過半数の賛成を得なければならない。</p>
+
+            <h4>第三十三条　公布</h4>
+            <p>成立した法律は、鯖主が公布する。</p>
+            <p>2　鯖主は、マタク鯖規約又は本憲法に反する法律を公布してはならない。</p>
+
+            <h4>第三十四条　施行</h4>
+            <p>法律は、公布された日から効力を有する。</p>
+            <p>2　法律に別の施行日を定めた場合は、その定める日から効力を有する。</p>
+
+            <h4>第三十五条　法律の改正及び廃止</h4>
+            <p>法律の改正又は廃止は、法律の制定と同じ手続によって行う。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第七章　異議申し立て</summary>
+          <div class="rule-body">
+            <h4>第三十六条　異議申し立ての権利</h4>
+            <p>すべての鯖民は、運営、議会、議員その他の鯖政について異議申し立てを行う権利を有する。</p>
+
+            <h4>第三十七条　異議申し立ての審議</h4>
+            <p>異議申し立てが行われた場合、鯖民議会はその内容を審議することができる。</p>
+            <p>2　鯖民議会の過半数が正式な議題として採択した場合、関係する機関又は者は、その決定を尊重しなければならない。</p>
+
+            <h4>第三十八条　運営への申し立て</h4>
+            <p>三人以上の鯖民による推薦がある場合、申し立てを行う者は運営に対して説明を求めることができる。</p>
+            <p>2　運営は、合理的な理由がない限り、これを拒んではならない。</p>
+
+            <h4>第三十九条　VCによる申し立て</h4>
+            <p>前条の申し立てについて、必要がある場合、鯖民は運営とのVCその他適切な方法による話し合いを求めることができる。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第九章　規範の関係</summary>
+          <div class="rule-body">
+            <h4>第四十二条　マタク鯖規約の最高性</h4>
+            <p>マタク鯖規約は、マタク鯖における最高の規範である。</p>
+            <p>2　本憲法、法律、政令、条例、運営規則その他すべての規定及び決定は、マタク鯖規約に反してはならない。</p>
+
+            <h4>第四十三条　本憲法の位置</h4>
+            <p>本憲法は、マタク鯖規約に基づき、マタク鯖における鯖民の自治及び民主的議会政治の制度を定める基本規範である。</p>
+            <p>2　法律その他の規則は、本憲法及びマタク鯖規約に反してはならない。</p>
+
+            <h4>第四十四条　下位規則</h4>
+            <p>政令、条例、運営規則その他の規則は、法律、本憲法及びマタク鯖規約に基づいて制定されなければならない。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>第十章　憲法の改正</summary>
+          <div class="rule-body">
+            <h4>第四十五条　憲法改正</h4>
+            <p>本憲法の改正は、鯖主が発議する。</p>
+            <p>2　鯖主は、憲法改正にあたり、鯖民議会の意見を聴取するものとする。</p>
+
+            <h4>第四十六条　改正の公布</h4>
+            <p>改正された本憲法は、鯖主が公布した日から効力を有する。</p>
+          </div>
+        </details>
+
+        <details class="rule-ch">
+          <summary>署名</summary>
+          <div class="rule-body">
+            <p>鯖主　藤原真拓</p>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; MATAKUSERVER</p>
+  </footer>
+
+  <script src="js/slides.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
