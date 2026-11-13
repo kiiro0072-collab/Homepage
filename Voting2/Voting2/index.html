@@ -3,55 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>議席数ダッシュボード</title>
+<title>マタク鯖衆議院 | MATAKUSERVER</title>
+<link rel="stylesheet" href="../css/style.css">
 <style>
   :root {
-    --bg: #0e1420;
-    --card: #171f2e;
-    --card2: #1d2739;
-    --line: #2a3549;
-    --text: #ffffff;
-    --muted: #c3cede;
-    --accent: #4f8cff;
-    --accent2: #7c5cff;
-    --ok: #33c48d;
-    --warn: #ffb020;
-    --danger: #ff5c6c;
+    --card2: #f7f8fc;
+    --line: #e5e7ec;
+    --text: #1a1a1a;
+    --muted: #666;
+    --accent: #3a5bd9;
+    --accent2: #1f3a93;
+    --ok: #2e9e5b;
+    --warn: #e8a13c;
+    --danger: #c0392b;
   }
-  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #43577d rgba(255,255,255,.05); }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #c3cede #f5f5f7; }
   ::-webkit-scrollbar { width: 12px; height: 12px; }
-  ::-webkit-scrollbar-track { background: rgba(255,255,255,.05); border-radius: 999px; }
+  ::-webkit-scrollbar-track { background: #f5f5f7; border-radius: 999px; }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #43577d, #2b3852);
+    background: linear-gradient(180deg, #c3cede, #9aa0b4);
     border: 3px solid transparent; border-radius: 999px; background-clip: padding-box;
   }
-  ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #6aa2ff, #8a6bff); background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #3a5bd9, #1f3a93); background-clip: padding-box; }
   ::-webkit-scrollbar-corner { background: transparent; }
-  body {
-    margin: 0;
-    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif;
-    background: radial-gradient(1200px 700px at 50% -10%, #1b2740 0%, var(--bg) 60%);
-    color: var(--text);
-    min-height: 100vh;
-  }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 18px 60px; }
-  header.top { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.35); flex-wrap: wrap; }
-  header.top .brand { display: flex; flex-direction: column; gap: 2px; }
-  header.top h1 { font-size: 22px; margin: 0; letter-spacing: .04em; }
-  header.top .sub { color: var(--muted); font-size: 13px; }
-  .nav-link {
-    margin-left: auto; font-size: 13px; font-weight: 700; color: var(--text); text-decoration: none;
-    background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px;
-    transition: border-color .15s, background .15s;
-  }
-  .nav-link:hover { border-color: var(--accent); background: #22304a; }
+  .container.dash { max-width: 1180px; }
+  .dash-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .dash-head h2 { margin: 0; }
+  .dash-head .page-sub { color: var(--muted); font-size: 13px; }
+  .dash-head .live { margin-left: auto; }
 
   .panel {
-    background: linear-gradient(180deg, var(--card) 0%, #141b28 100%);
+    background: #fff;
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
   }
 
   .stage { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px 4px; }
@@ -77,7 +63,7 @@
   .members { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 14px; }
   .camp-title {
     font-size: 13px; font-weight: 700; letter-spacing: .08em; margin: 0 0 8px;
-    display: flex; align-items: center; gap: 10px; color: #fff;
+    display: flex; align-items: center; gap: 10px; color: var(--text);
   }
   .camp-title .cnt { color: var(--muted); font-weight: 500; font-size: 12px; }
   .camp-title .ln { flex: 1; height: 1px; background: var(--line); }
@@ -91,13 +77,13 @@
   .party-col.ruling { border-color: rgba(255,176,32,.75); box-shadow: inset 0 0 0 1px rgba(255,176,32,.25); }
   .pc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .pc-name { font-weight: 800; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pc-badge { flex: 0 0 auto; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: var(--warn); color: #1a1200; }
+  .pc-badge { flex: 0 0 auto; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: var(--warn); color: #4a3200; }
   .pc-seats { margin-left: auto; flex: 0 0 auto; font-size: 12px; color: var(--muted); font-weight: 700; }
   .pc-list { display: flex; flex-direction: column; gap: 8px; }
 
   /* 議員・閣僚カード */
-  .mcard { display: flex; gap: 8px; align-items: center; background: #0f1623; border: 2px solid var(--accent); border-radius: 10px; padding: 6px; }
-  .mava { width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto; image-rendering: pixelated; background: #0f1623; object-fit: cover; }
+  .mcard { display: flex; gap: 8px; align-items: center; background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 6px; }
+  .mava { width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto; image-rendering: pixelated; background: #e5e7ec; object-fit: cover; }
   .mtxt { min-width: 0; }
   .mname { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mparty { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -107,34 +93,112 @@
 
   .banner { border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; display: none; }
   .banner.show { display: block; }
-  .banner.err { background: rgba(255,92,108,.12); border: 1px solid rgba(255,92,108,.4); color: #ffb3bb; }
+  .banner.err { background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.4); color: #a02c22; }
 
   .live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
   .live .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(51,196,141,.5);} 70%{box-shadow:0 0 0 8px rgba(51,196,141,0);} 100%{box-shadow:0 0 0 0 rgba(51,196,141,0);} }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(46,158,91,.5);} 70%{box-shadow:0 0 0 8px rgba(46,158,91,0);} 100%{box-shadow:0 0 0 0 rgba(46,158,91,0);} }
   [hidden] { display: none !important; }
 
   #cabinet { margin-top: 22px; }
+
+  /* 議席ボード（扇型の両脇） */
+  .seat-row { display: flex; align-items: center; gap: 18px; width: 100%; margin-top: 6px; }
+  .seat-row #semicircle { flex: 1 1 auto; min-width: 0; }
+  .seat-side { flex: 0 0 170px; display: flex; flex-direction: column; gap: 8px; }
+  .side-label { font-size: 12px; font-weight: 800; letter-spacing: .08em; margin: 2px 0; }
+  .side-label.ruling { color: #ff3b4e; }
+  .side-label.opposition { color: #3b82f6; }
+  .side-label.indep { color: #8a97ab; }
+  .seat-block {
+    background: var(--card2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sb-text { flex: 1 1 auto; min-width: 0; }
+  .sb-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text); }
+  .sb-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+  .sb-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb-seats { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .sb-ava {
+    width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto;
+    image-rendering: pixelated; background: #e5e7ec; object-fit: cover;
+  }
+  @media (max-width: 900px) {
+    .seat-row { flex-direction: column; }
+    .seat-side { flex: none; width: 100%; }
+  }
+
+  /* メンバーモーダル */
+  .mcard.clickable { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .mcard.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; padding: 20px;
+  }
+  .modal-card {
+    position: relative; background: #fff; border-radius: 14px;
+    max-width: 480px; width: 100%; padding: 26px 22px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .modal-close {
+    position: absolute; top: 8px; right: 12px; border: none;
+    background: none; font-size: 28px; line-height: 1; cursor: pointer; color: #888;
+  }
+  .modal-close:hover { color: #333; }
+  .modal-ava {
+    width: 64px; height: 64px; border-radius: 10px;
+    image-rendering: pixelated; background: #e5e7ec; object-fit: cover;
+  }
+  .modal-name { font-size: 20px; margin: 12px 0 4px; }
+  .modal-meta { display: flex; gap: 12px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .modal-h { font-size: 14px; color: var(--accent2); margin-bottom: 8px; letter-spacing: .05em; }
+  .modal-manifesto { font-size: 14px; line-height: 1.9; color: #444; white-space: pre-wrap; }
+
+  /* 憲法 */
+  .constitution { margin-top: 28px; }
+  .constitution .accent { color: #c0392b; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <h1>マタク鯖衆議院</h1>
-      <span class="sub">半円扇型ビュー / 議席情報</span>
-    </div>
-    <a class="nav-link" href="./company.html">会社一覧</a>
-    <span class="live" id="live"><span class="pulse"></span>読み込み中...</span>
-  </header>
+<header class="header">
+  <div class="header-inner">
+    <a href="../index.html" class="logo">MATAKUSERVER</a>
+    <nav class="nav">
+      <ul>
+        <li><a href="../index.html">HOME</a></li>
+        <li><a href="../index.html#join">参加方法</a></li>
+        <li><a href="../index.html#howtoplay">遊び方</a></li>
+        <li><a href="../index.html#rule">ルール</a></li>
+        <li><a href="../index.html#about">列島について</a></li>
+        <li><a href="index.html" class="active">マタク鯖衆議院</a></li>
+        <li><a href="../company/">マタク鯖会社一覧</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
-  <section class="panel stage">
+<main>
+  <section class="section">
+    <div class="container dash">
+      <div class="dash-head">
+        <h2>マタク鯖衆議院</h2>
+        <span class="page-sub">半円扇型ビュー / 議席情報</span>
+        <span class="live" id="live"><span class="pulse"></span>読み込み中...</span>
+      </div>
+
+      <div class="panel stage">
     <div id="error" class="banner err"></div>
     <div class="chart-toggle" id="chart-toggle" role="tablist">
       <button type="button" data-mode="party">政党</button>
       <button type="button" data-mode="individual">個人</button>
     </div>
-    <svg id="semicircle" viewBox="0 0 640 350" role="img" aria-label="議席の半円図"></svg>
+    <div class="seat-row">
+      <div class="seat-side" id="seat-left"></div>
+      <svg id="semicircle" viewBox="0 0 640 350" role="img" aria-label="議席の半円図"></svg>
+      <div class="seat-side" id="seat-right"></div>
+    </div>
     <div class="stats">
       <div class="stat seats"><div class="k">議席数</div><div class="v" id="stat-seats">&hellip;</div></div>
       <div class="stat cap"><div class="k">定員</div><div class="v" id="stat-cap">&hellip;</div></div>
@@ -142,7 +206,246 @@
     </div>
     <div class="members" id="members"><div class="camp-empty loading">読み込み中...</div></div>
     <div class="members" id="cabinet"><div class="camp-empty loading">読み込み中...</div></div>
+      </div>
+
+      <div class="constitution">
+        <h2>🇯🇵 マタク鯖 日本列島鯖憲法</h2>
+        <p class="constitution-sub">― 鯖民民主的議会政治規約 ―</p>
+
+    <details class="rule-ch" open>
+      <summary>前文</summary>
+      <div class="rule-body">
+        <p>マタク鯖は、鯖民相互の自由、平等及び自治を尊重し、すべての鯖民が安心して活動できる環境を維持することを目的とする。</p>
+        <p>マタク鯖における最終的な主権は鯖主に属する。</p>
+        <p>鯖主の主権のもと、鯖民による民主的な議会政治を行い、鯖民の意思を鯖政に反映させることを基本とする。</p>
+        <p>ここに、マタク鯖における民主的議会政治の基本原則を定める。</p>
+        <p class="accent">[一～四条は廃止されました欠番です]</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第一章　鯖民の権利及び義務</summary>
+      <div class="rule-body">
+        <h4>第五条　鯖民</h4>
+        <p>マタク鯖の規約に定める要件を満たした者を、鯖民とする。</p>
+
+        <h4>第六条　鯖民の権利</h4>
+        <p>すべての鯖民は、法律及び本憲法の定めるところにより、次の権利を有する。</p>
+        <ul class="rule-list">
+          <li>一　選挙に参加する権利。</li>
+          <li>二　議員に立候補する権利。</li>
+          <li>三　議会に意見を提出する権利。</li>
+          <li>四　法律案を提出する権利。</li>
+          <li>五　異議申し立てを行う権利。</li>
+          <li>六　その他、鯖政に参加する権利。</li>
+        </ul>
+
+        <h4>第七条　平等</h4>
+        <p>すべての鯖民は、政治上平等に扱われなければならない。</p>
+        <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって、政治上の権利を差別してはならない。</p>
+
+        <h4>第八条　不当な処罰の禁止</h4>
+        <p>鯖民に対して、マタク鯖規約、法律その他の明確な根拠のない処罰を行ってはならない。</p>
+
+        <h4>第九条　鯖民の義務</h4>
+        <p>鯖民は、マタク鯖規約、本憲法及び法律を尊重しなければならない。</p>
+        <p>2　鯖民は、他の鯖民の権利を尊重しなければならない。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第三章　鯖民議会</summary>
+      <div class="rule-body">
+        <h4>第十条　鯖民議会</h4>
+        <p>鯖民議会は、鯖民が民主的に意見をまとめ、マタク鯖の自治及び政治を行うための機関である。</p>
+
+        <h4>第十一条　両議院</h4>
+        <p>鯖民議会は、衆議院及び運営院の二院をもって構成する。</p>
+
+        <h4>第十二条　代表</h4>
+        <p>両議院は、本憲法及び法律に基づいて選出又は構成された議員によって組織する。</p>
+
+        <h4>第十三条　議席</h4>
+        <p>衆議院の議席総数は、100議席とする。</p>
+        <p>2　一人の議員が複数の議席を保有することを認める。</p>
+        <p>3　一人が保有できる議席数の上限その他の細則は、公職選挙法で定める。</p>
+
+        <h4>第十四条　議員及び選挙人の資格</h4>
+        <p>議員及び選挙人の資格は、マタク鯖の鯖民に与えられる。</p>
+        <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって差別してはならない。</p>
+
+        <h4>第十五条　議会の議決</h4>
+        <p>議会における議決は、原則として議員が保有する議席を単位として行う。</p>
+        <p>2　具体的な議決方法は、法律又は議会規則で定める。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第四章　衆議院</summary>
+      <div class="rule-body">
+        <h4>第十六条　衆議院議員の任期</h4>
+        <p>衆議院議員の任期は、三か月とする。</p>
+        <p>2　衆議院が解散された場合、その時点で任期を終了する。</p>
+
+        <h4>第十七条　選挙</h4>
+        <p>衆議院議員は、鯖民による選挙によって選出する。</p>
+        <p>2　選挙は、得票数に応じて議席を配分する比例的な方法を基本とする。</p>
+        <p>3　具体的な選挙方法及び議席配分方法は、選挙法で定める。</p>
+
+        <h4>第十八条　総理大臣の指名</h4>
+        <p>総理大臣は、衆議院において総理大臣候補者に賛成した議員が保有する議席の合計が最も多い候補者を基本として決定する。</p>
+        <p>2　鯖主は、前項によって決定された者を総理大臣に任命する。</p>
+
+        <h4>第十九条　総理大臣の代理</h4>
+        <p>総理大臣は、あらかじめ代理総理大臣を定めなければならない。</p>
+        <p>2　総理大臣が議会その他の公務に出席できない場合、代理総理大臣がその職務を代行する。</p>
+
+        <h4>第二十条　議会への出席</h4>
+        <p>議員は、議会に出席し、議決に参加するものとする。</p>
+        <p>2　議員が議会を欠席又は遅刻した場合、その議員が保有する議席は、その議会において棄権として扱う。</p>
+        <p>3　すべての議席が棄権となった場合、その議案は成立しない。</p>
+
+        <h4>第二十一条　議会の招集</h4>
+        <p>総理大臣及び鯖主は、必要に応じて議会を招集することができる。</p>
+
+        <h4>第二十二条　衆議院の解散</h4>
+        <p>鯖主は、衆議院を解散することができる。</p>
+        <p>2　総理大臣が自ら衆議院を解散することを決定した場合、総理大臣は辞任しなければならない。</p>
+        <p>3　衆議院が解散された場合、総理大臣が速やかに新たな選挙を行う。</p>
+
+        <h4>第二十三条　法律の制定</h4>
+        <p>衆議院は、出席議員の保有する議席の過半数の賛成により、法律案を可決することができる。</p>
+
+        <h4>第二十四条　総理大臣の不信任</h4>
+        <p>衆議院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+        <p>2　不信任決議が成立した場合、総理大臣は辞任し、新たな総理大臣を指名する。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第五章　運営院</summary>
+      <div class="rule-body">
+        <h4>第二十五条　運営院</h4>
+        <p>運営院は、マタク鯖の運営に携わる者によって構成する。</p>
+        <p>2　運営院の議席及び構成員は、法律又は運営に関する規則によって定める。</p>
+
+        <h4>第二十六条　運営院の権限</h4>
+        <p>運営院は、サーバーの運営、管理及び技術的事項について審議する権限を有する。</p>
+
+        <h4>第二十七条　運営に関する法律</h4>
+        <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方の承認を必要とする。</p>
+        <p>2　前項の法律は、両院においてそれぞれ過半数の賛成を得なければならない。</p>
+
+        <h4>第二十八条　総理大臣の不信任</h4>
+        <p>運営院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第六章　法律</summary>
+      <div class="rule-body">
+        <h4>第二十九条　法律</h4>
+        <p>法律は、本憲法及びマタク鯖規約に基づき、鯖民及びサーバーの運営に必要な具体的な規則を定めるものである。</p>
+
+        <h4>第三十条　法案の提出</h4>
+        <p>法律案は、次の者が提出することができる。</p>
+        <ul class="rule-list">
+          <li>一　衆議院議員。</li>
+          <li>二　総理大臣。</li>
+          <li>三　運営院。</li>
+          <li>四　法律で定める方法により一定数以上の鯖民の賛同を得た者。</li>
+        </ul>
+
+        <h4>第三十一条　通常法律</h4>
+        <p>通常の法律は、衆議院において出席議員の保有する議席の過半数の賛成をもって可決する。</p>
+
+        <h4>第三十二条　運営関連法</h4>
+        <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方において過半数の賛成を得なければならない。</p>
+
+        <h4>第三十三条　公布</h4>
+        <p>成立した法律は、鯖主が公布する。</p>
+        <p>2　鯖主は、マタク鯖規約又は本憲法に反する法律を公布してはならない。</p>
+
+        <h4>第三十四条　施行</h4>
+        <p>法律は、公布された日から効力を有する。</p>
+        <p>2　法律に別の施行日を定めた場合は、その定める日から効力を有する。</p>
+
+        <h4>第三十五条　法律の改正及び廃止</h4>
+        <p>法律の改正又は廃止は、法律の制定と同じ手続によって行う。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第七章　異議申し立て</summary>
+      <div class="rule-body">
+        <h4>第三十六条　異議申し立ての権利</h4>
+        <p>すべての鯖民は、運営、議会、議員その他の鯖政について異議申し立てを行う権利を有する。</p>
+
+        <h4>第三十七条　異議申し立ての審議</h4>
+        <p>異議申し立てが行われた場合、鯖民議会はその内容を審議することができる。</p>
+        <p>2　鯖民議会の過半数が正式な議題として採択した場合、関係する機関又は者は、その決定を尊重しなければならない。</p>
+
+        <h4>第三十八条　運営への申し立て</h4>
+        <p>三人以上の鯖民による推薦がある場合、申し立てを行う者は運営に対して説明を求めることができる。</p>
+        <p>2　運営は、合理的な理由がない限り、これを拒んではならない。</p>
+
+        <h4>第三十九条　VCによる申し立て</h4>
+        <p>前条の申し立てについて、必要がある場合、鯖民は運営とのVCその他適切な方法による話し合いを求めることができる。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第九章　規範の関係</summary>
+      <div class="rule-body">
+        <h4>第四十二条　マタク鯖規約の最高性</h4>
+        <p>マタク鯖規約は、マタク鯖における最高の規範である。</p>
+        <p>2　本憲法、法律、政令、条例、運営規則その他すべての規定及び決定は、マタク鯖規約に反してはならない。</p>
+
+        <h4>第四十三条　本憲法の位置</h4>
+        <p>本憲法は、マタク鯖規約に基づき、マタク鯖における鯖民の自治及び民主的議会政治の制度を定める基本規範である。</p>
+        <p>2　法律その他の規則は、本憲法及びマタク鯖規約に反してはならない。</p>
+
+        <h4>第四十四条　下位規則</h4>
+        <p>政令、条例、運営規則その他の規則は、法律、本憲法及びマタク鯖規約に基づいて制定されなければならない。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第十章　憲法の改正</summary>
+      <div class="rule-body">
+        <h4>第四十五条　憲法改正</h4>
+        <p>本憲法の改正は、鯖主が発議する。</p>
+        <p>2　鯖主は、憲法改正にあたり、鯖民議会の意見を聴取するものとする。</p>
+
+        <h4>第四十六条　改正の公布</h4>
+        <p>改正された本憲法は、鯖主が公布した日から効力を有する。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>署名</summary>
+      <div class="rule-body">
+        <p>鯖主　藤原真拓</p>
+      </div>
+        </details>
+      </div>
+    </div>
   </section>
+</main>
+
+<footer class="footer">
+  <p>&copy; MATAKUSERVER</p>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-close" id="modal-close" aria-label="閉じる">&times;</button>
+    <img class="modal-ava" id="modal-ava" alt="">
+    <h3 class="modal-name" id="modal-name"></h3>
+    <div class="modal-meta"><span id="modal-party"></span><span id="modal-seats"></span></div>
+    <h4 class="modal-h">公約</h4>
+    <p class="modal-manifesto" id="modal-manifesto"></p>
+  </div>
 </div>
 
 <script>
@@ -156,6 +459,7 @@
   ];
   var INDEP = "無所属";
   var INDEP_COLOR = "#8a97ab";
+  var OFFLINE_UUID = /^00000000-0000-0000-0009-/;
 
   var state = {
     seats: 0, capacity: 0,
@@ -188,6 +492,19 @@
       d += " L " + pts[i].x.toFixed(2) + " " + pts[i].y.toFixed(2);
     }
     return d + " Z";
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var steps = Math.max(2, Math.ceil(Math.abs(a0 - a1) / 2));
+    var pts = [], i, a;
+    for (i = 0; i <= steps; i++) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, r, a));
+    }
+    var d = "M " + pts[0].x.toFixed(2) + " " + pts[0].y.toFixed(2);
+    for (i = 1; i < pts.length; i++) {
+      d += " L " + pts[i].x.toFixed(2) + " " + pts[i].y.toFixed(2);
+    }
+    return d;
   }
 
   function lighten(hex, amount) {
@@ -299,7 +616,7 @@
     var out = [];
 
     out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 0) +
-             '" fill="#161f2e" stroke="#22304a" stroke-width="1"/>');
+             '" fill="#eef0f6" stroke="#dfe3ec" stroke-width="1"/>');
 
     var total = sumSeats(left) + sumSeats(right);
     if (total > 0) {
@@ -323,7 +640,7 @@
                  escapeXmlText(name) + '</text>');
         labels.push('<text x="' + x + '" y="' + (pos.y + dy2).toFixed(2) +
                  '" text-anchor="middle" dominant-baseline="central"' +
-                 ' fill="#c3cede" font-size="' + fs2.toFixed(1) + '" font-weight="700">' +
+                 ' fill="#ffffff" fill-opacity="0.85" font-size="' + fs2.toFixed(1) + '" font-weight="700">' +
                  seats + '</text>');
       }
 
@@ -358,19 +675,50 @@
         lStart = lEnd;
         lfStart = lfEnd;
       });
+
+      // 外周10pxの縁取り: 実際の議席割合に応じて 与党=赤 / 野党=青
+      var leftSpan = 180 * sumSeats(left) / total * p;
+      var rightSpan = 180 * sumSeats(right) / total * p;
+      out.push('<path d="' + arcPath(cx, cy, rOut + 10, 180, 180 - leftSpan) +
+               '" fill="none" stroke="#ff3b4e" stroke-width="10"/>' +
+               '<path d="' + arcPath(cx, cy, rOut + 10, 0, rightSpan) +
+               '" fill="none" stroke="#3b82f6" stroke-width="10"/>');
+
+      // 過半数(50%)・1/3の区切り線とラベル
+      var marks = [
+        { a: 90, label: "過半数" },
+        { a: 120, label: "1/3" },
+        { a: 60, label: "2/3" }
+      ];
+      marks.forEach(function (mk) {
+        var pi = polar(cx, cy, rIn, mk.a);
+        var po = polar(cx, cy, rOut, mk.a);
+        out.push('<line x1="' + pi.x.toFixed(2) + '" y1="' + pi.y.toFixed(2) +
+                 '" x2="' + po.x.toFixed(2) + '" y2="' + po.y.toFixed(2) +
+                 '" stroke="#9aa0b4" stroke-width="2"/>');
+        var lp = polar(cx, cy, rOut + 26, mk.a);
+        out.push('<text x="' + lp.x.toFixed(2) + '" y="' + lp.y.toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central" fill="#9aa0b4" ' +
+                 'font-size="14" font-weight="700">' + mk.label + '</text>');
+      });
       out = out.concat(labels);
     }
 
-    out.push('<text x="' + cx + '" y="' + (cy - 44) + '" text-anchor="middle" fill="#c3b2ff" ' +
-             'font-size="58" font-weight="800" style="font-variant-numeric:tabular-nums">' + capacity + '</text>');
-    out.push('<text x="' + cx + '" y="' + (cy - 16) + '" text-anchor="middle" fill="#93a1b8" ' +
-             'font-size="14" letter-spacing="4">定員</text>');
-
     var rulingSeats = sumSeats(left);
     var oppSeats = Math.max(0, capacity - rulingSeats);
-    out.push('<text x="' + cx + '" y="' + (cy + 10) + '" text-anchor="middle" fill="#93a1b8" ' +
-             'font-size="14" style="font-variant-numeric:tabular-nums">' +
-             '(与党 ' + rulingSeats + '議席 野党 ' + oppSeats + '議席)</text>');
+    var rp = Math.round(rulingSeats * p);
+    var op = Math.round(oppSeats * p);
+    var lx = cx - 74, rx = cx + 74;
+    out.push('<text x="' + lx + '" y="' + (cy - 62) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="15" font-weight="700" letter-spacing="2">与党</text>');
+    out.push('<text x="' + lx + '" y="' + (cy - 12) + '" text-anchor="middle" fill="#ff3b4e" ' +
+             'font-size="46" font-weight="800" style="font-variant-numeric:tabular-nums">' + rp + '</text>');
+    out.push('<text x="' + rx + '" y="' + (cy - 62) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="15" font-weight="700" letter-spacing="2">野党</text>');
+    out.push('<text x="' + rx + '" y="' + (cy - 12) + '" text-anchor="middle" fill="#3b82f6" ' +
+             'font-size="46" font-weight="800" style="font-variant-numeric:tabular-nums">' + op + '</text>');
+    out.push('<text x="' + cx + '" y="' + (cy + 26) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="13" style="font-variant-numeric:tabular-nums">定員 ' + capacity + '</text>');
 
     svg.innerHTML = out.join("");
   }
@@ -394,7 +742,7 @@
   }
 
   function mcard(o) {
-    var c = el("div", "mcard");
+    var c = el("div", "mcard" + (o.manifesto ? " clickable" : ""));
     c.style.borderColor = o.color || "#4f8cff";
     if (o.id) {
       var img = document.createElement("img");
@@ -402,6 +750,7 @@
       img.src = "https://mc-heads.net/avatar/" + encodeURIComponent(o.id) + "/64";
       img.alt = "";
       img.loading = "lazy";
+      img.onerror = function () { img.style.display = "none"; };
       c.appendChild(img);
     }
     var txt = el("div", "mtxt");
@@ -416,6 +765,10 @@
     sub.textContent = o.sub != null ? o.sub : ((o.seats | 0) + "議席");
     txt.appendChild(sub);
     c.appendChild(txt);
+    if (o.manifesto) {
+      c.title = "クリックで公約を表示";
+      c.addEventListener("click", function () { openMemberModal(o); });
+    }
     return c;
   }
 
@@ -457,7 +810,9 @@
         name: found ? found.name : (cleanName(mm.name) || "名称未設定"),
         id: mm.uuid || "",
         seats: found ? (found.seats | 0) : 0,
-        color: p.color
+        color: p.color,
+        manifesto: found ? found.manifesto : "",
+        avaId: found ? found.avaId : ""
       };
     }).sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
 
@@ -467,7 +822,10 @@
       list.appendChild(empty);
     } else {
       rows.forEach(function (m) {
-        list.appendChild(mcard({ name: m.name, id: m.id, party: p.name, seats: m.seats, color: p.color }));
+        list.appendChild(mcard({
+          name: m.name, id: m.id, party: p.name, seats: m.seats, color: p.color,
+          manifesto: m.manifesto, avaId: m.avaId
+        }));
       });
     }
     col.appendChild(list);
@@ -521,7 +879,7 @@
     var pmParty = state.primeMinisterParty || "";
     var pm = state.members.filter(function (m) { return m.isPM; })[0];
     if (pm) {
-      cards.push({ name: pm.name, id: pm.id, party: pm.party || pmParty, sub: "内閣総理大臣", color: pm.color });
+      cards.push({ name: pm.name, id: pm.id, party: pm.party || pmParty, sub: "内閣総理大臣", color: pm.color, manifesto: pm.manifesto, avaId: pm.avaId });
       seen[pm.id] = true;
     } else if (state.primeMinister) {
       cards.push({ name: cleanName(state.primeMinister), id: "", party: pmParty, sub: "内閣総理大臣", color: "#7c5cff" });
@@ -530,12 +888,18 @@
       var id = c.uuid || ("cab" + i);
       if (seen[id]) return;
       seen[id] = true;
+      var mm = null;
+      for (var j = 0; j < state.members.length; j++) {
+        if (state.members[j].id === c.uuid) { mm = state.members[j]; break; }
+      }
       cards.push({
         name: cleanName(c.name) || "名称未設定",
         id: c.uuid || "",
         party: c.party || "",
         sub: c.role || "閣僚",
-        color: colorForParty(c.party)
+        color: colorForParty(c.party),
+        manifesto: mm ? mm.manifesto : "",
+        avaId: mm ? mm.avaId : ""
       });
     });
     if (!cards.length) return;
@@ -546,6 +910,84 @@
     cards.forEach(function (c) { row.appendChild(mcard(c)); });
     camp.appendChild(row);
     root.appendChild(camp);
+  }
+
+  function seatBlock(name, seats, color, avatarId) {
+    var b = el("div", "seat-block");
+    var txt = el("div", "sb-text");
+    var nm = el("div", "sb-name");
+    var dot = el("span", "sb-dot");
+    dot.style.background = color || INDEP_COLOR;
+    var nt = el("span", "sb-name-text");
+    nt.textContent = name;
+    nm.appendChild(dot);
+    nm.appendChild(nt);
+    var sn = el("div", "sb-seats");
+    sn.textContent = seats;
+    txt.appendChild(nm);
+    txt.appendChild(sn);
+    b.appendChild(txt);
+    if (avatarId) {
+      var img = document.createElement("img");
+      img.className = "sb-ava";
+      img.src = "https://mc-heads.net/avatar/" +
+        encodeURIComponent(String(avatarId).replace(/^\.+/, "")) + "/64";
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = function () { img.style.display = "none"; };
+      b.appendChild(img);
+    }
+    return b;
+  }
+
+  function sideLabel(text, cls) {
+    var l = el("div", "side-label " + cls);
+    l.textContent = text;
+    return l;
+  }
+
+  function renderSeatBoard() {
+    var L = document.getElementById("seat-left");
+    var R = document.getElementById("seat-right");
+    if (!L || !R) return;
+    L.innerHTML = "";
+    R.innerHTML = "";
+
+    function topMemberOfParty(name) {
+      var list = membersOfParty(name);
+      for (var i = 0; i < list.length; i++) {
+        if (!list[i].avaBad) return list[i];
+      }
+      return null;
+    }
+
+    L.appendChild(sideLabel("与党", "ruling"));
+    state.parties.filter(function (p) { return p.ruling && (p.seats | 0) > 0; })
+      .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); })
+      .forEach(function (p) {
+        var top = topMemberOfParty(p.name);
+        L.appendChild(seatBlock(p.name, p.seats | 0, p.color, top ? top.avaId : ""));
+      });
+
+    R.appendChild(sideLabel("野党", "opposition"));
+    state.parties.filter(function (p) { return !p.ruling && (p.seats | 0) > 0; })
+      .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); })
+      .forEach(function (p) {
+        var top = topMemberOfParty(p.name);
+        R.appendChild(seatBlock(p.name, p.seats | 0, p.color, top ? top.avaId : ""));
+      });
+
+    var indep = state.members.filter(function (m) { return !m.party && (m.seats | 0) > 0; })
+      .sort(function (a, b) {
+        if (a.avaBad !== b.avaBad) return a.avaBad ? 1 : -1;
+        return (b.seats | 0) - (a.seats | 0);
+      });
+    if (indep.length) {
+      R.appendChild(sideLabel("無所属", "indep"));
+      indep.forEach(function (m) {
+        R.appendChild(seatBlock(m.name, m.seats | 0, INDEP_COLOR, m.avaBad ? "" : m.avaId));
+      });
+    }
   }
 
   function updateToggle() {
@@ -581,6 +1023,7 @@
       remVal.textContent = rem;
     }
     animateChart();
+    renderSeatBoard();
     renderMembers();
     renderCabinet();
   }
@@ -612,6 +1055,17 @@
       .then(function (text) { return parseJsonLoose(text); });
   }
 
+  // アバター取得IDを決定。オフラインUUIDはmc-headsで解決できないため nickname/name のユーザー名を使う
+  function pickAvaId(m) {
+    var u = String(m.uuid || "");
+    if (u && !OFFLINE_UUID.test(u)) return { id: u, bad: false };
+    var n = String(m.nickname || "").replace(/^\.+/, "").trim();
+    if (/^[A-Za-z0-9_]{3,16}$/.test(n)) return { id: n, bad: false };
+    var d = String(m.name || "").replace(/^\.+/, "").trim();
+    if (/^[A-Za-z0-9_]{3,16}$/.test(d)) return { id: d, bad: false };
+    return { id: "", bad: true };
+  }
+
   function applyData(data) {
     data = data || {};
     state.capacity = (data.totalSeats) | 0;
@@ -640,13 +1094,18 @@
     var pmKey = cleanName(state.primeMinister);
     state.members = (data.members || []).map(function (m, i) {
       var name = cleanName(m.name) || "名称未設定";
+      var ava = pickAvaId(m);
       return {
         name: name,
         nickname: m.nickname || "",
         party: m.party || "",
         seats: m.seats | 0,
+        manifesto: m.manifesto || "",
+        hasDot: /^\./.test(String(m.name || "")),
+        avaId: ava.id,
+        avaBad: ava.bad,
         isPM: !!pmKey && name === pmKey,
-        id: m.uuid || ("m" + i),
+        id: m.uuid || name,
         color: m.party ? colorForParty(m.party) : INDEP_COLOR
       };
     });
@@ -677,6 +1136,40 @@
     }
     attempt();
   }
+
+  // ---------- メンバーモーダル ----------
+  var modalOverlay = document.getElementById("modal-overlay");
+  var modalAva = document.getElementById("modal-ava");
+
+  function openMemberModal(o) {
+    document.getElementById("modal-name").textContent = o.name || "名称未設定";
+    document.getElementById("modal-party").textContent = o.party || INDEP;
+    document.getElementById("modal-seats").textContent =
+      (o.seats | 0) + "議席" + (o.sub ? " / " + o.sub : "");
+    document.getElementById("modal-manifesto").textContent = o.manifesto || "（公約なし）";
+
+    var aid = o.avaId || o.id;
+    if (aid) {
+      modalAva.src = "https://mc-heads.net/avatar/" +
+        encodeURIComponent(String(aid).replace(/^\.+/, "")) + "/64";
+      modalAva.style.display = "";
+      modalAva.onerror = function () { modalAva.style.display = "none"; };
+    } else {
+      modalAva.removeAttribute("src");
+      modalAva.style.display = "none";
+    }
+    modalOverlay.hidden = false;
+  }
+
+  function closeMemberModal() { modalOverlay.hidden = true; }
+
+  document.getElementById("modal-close").addEventListener("click", closeMemberModal);
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) closeMemberModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeMemberModal();
+  });
 
   setupToggle();
   load();
