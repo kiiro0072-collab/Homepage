@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マタクアカウント ログイン</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="login-view">
+    <h1>マタクアカウント</h1>
+    <p>Minecraftで作成したユーザー名とパスワードでログインします。</p>
+    <form id="login-form">
+        <label for="username">ユーザー名（MCID）</label>
+        <input id="username" name="username" autocomplete="username" required minlength="3" maxlength="16" pattern="[A-Za-z0-9_]{3,16}" placeholder="Minecraft ID">
+        <label for="password">パスワード</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="アカウントのパスワード">
+        <button id="submit" type="submit">ログイン</button>
+    </form>
+    <div id="message" aria-live="polite"></div>
+    <div class="hint">アカウントの作成はMinecraft内の /matakuaccount create コマンドでのみ可能です。</div>
+    <p class="back-link"><a href="index.html">サイトに戻る</a></p>
+</main>
+<main id="done-view" hidden>
+    <h1>ログインしました</h1>
+    <p id="done-name"></p>
+    <a class="back-btn" href="index.html">サイトに戻る</a>
+</main>
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

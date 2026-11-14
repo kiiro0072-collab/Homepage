@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マタク鯖衆議院 | MATAKUSERVER</title>
+<link rel="stylesheet" href="../css/style.css">
+<script src="config.js"></script>
+<style>
+  :root {
+    --card2: #f7f8fc;
+    --line: #e5e7ec;
+    --text: #1a1a1a;
+    --muted: #666;
+    --accent: #3a5bd9;
+    --accent2: #1f3a93;
+    --ok: #2e9e5b;
+    --warn: #e8a13c;
+    --danger: #c0392b;
+  }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #c3cede #f5f5f7; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: #f5f5f7; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #c3cede, #9aa0b4);
+    border: 3px solid transparent; border-radius: 999px; background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #3a5bd9, #1f3a93); background-clip: padding-box; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  .container.dash { max-width: 1180px; }
+  .dash-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .dash-head h2 { margin: 0; }
+  .dash-head .page-sub { color: var(--muted); font-size: 13px; }
+  .dash-head .live { margin-left: auto; }
+
+  .panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+  }
+
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px 4px; }
+
+  .chart-toggle { display: inline-flex; gap: 6px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 4px; margin-bottom: 4px; }
+  .chart-toggle button { appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 7px; cursor: pointer; }
+  .chart-toggle button.on { background: var(--accent); color: #fff; }
+
+  #semicircle { width: 100%; max-width: 640px; height: auto; display: block; }
+
+  .stats { display: flex; gap: 14px; width: 100%; margin-top: 8px; flex-wrap: wrap; }
+  .stat {
+    flex: 1 1 0; min-width: 110px; background: var(--card2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .stat .k { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+  .stat .v { font-size: 26px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat.seats .v { color: var(--accent); }
+  .stat.cap .v { color: var(--accent2); }
+  .stat.rem .v { color: var(--ok); }
+  .stat.over .v { color: var(--danger); }
+
+  .members { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 14px; }
+  .camp-title {
+    font-size: 13px; font-weight: 700; letter-spacing: .08em; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 10px; color: var(--text);
+  }
+  .camp-title .cnt { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .camp-title .ln { flex: 1; height: 1px; background: var(--line); }
+  .camp-empty { color: var(--muted); font-size: 12px; padding: 8px 0; }
+  .loading { color: var(--muted); opacity: .75; animation: loadpulse 1.4s ease-in-out infinite; }
+  @keyframes loadpulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+  /* 議員名簿: 政党ごとの列 */
+  .party-cols { width: 100%; display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; align-items: flex-start; }
+  .party-col { flex: 0 0 230px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+  .party-col.ruling { border-color: rgba(255,176,32,.75); box-shadow: inset 0 0 0 1px rgba(255,176,32,.25); }
+  .pc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .pc-name { font-weight: 800; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-badge { flex: 0 0 auto; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: var(--warn); color: #4a3200; }
+  .pc-seats { margin-left: auto; flex: 0 0 auto; font-size: 12px; color: var(--muted); font-weight: 700; }
+  .pc-list { display: flex; flex-direction: column; gap: 8px; }
+
+  /* 議員・閣僚カード */
+  .mcard { display: flex; gap: 8px; align-items: center; background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 6px; }
+  .mava { width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto; image-rendering: pixelated; background: #e5e7ec; object-fit: cover; }
+  .mtxt { min-width: 0; }
+  .mname { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mparty { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .msub { font-size: 11px; color: var(--muted); }
+  .member-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; }
+  .member-row .mcard { flex: 0 0 auto; min-width: 190px; }
+
+  .banner { border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .banner.show { display: block; }
+  .banner.err { background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.4); color: #a02c22; }
+
+  .live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .live .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(46,158,91,.5);} 70%{box-shadow:0 0 0 8px rgba(46,158,91,0);} 100%{box-shadow:0 0 0 0 rgba(46,158,91,0);} }
+  [hidden] { display: none !important; }
+
+  #cabinet { margin-top: 22px; }
+
+  /* 議席ボード（扇型の両脇） */
+  .seat-row { display: flex; align-items: center; gap: 18px; width: 100%; margin-top: 6px; }
+  .seat-row #semicircle { flex: 1 1 auto; min-width: 0; }
+  .seat-side { flex: 0 0 170px; display: flex; flex-direction: column; gap: 8px; }
+  .side-label { font-size: 12px; font-weight: 800; letter-spacing: .08em; margin: 2px 0; }
+  .side-label.ruling { color: #ff3b4e; }
+  .side-label.opposition { color: #3b82f6; }
+  .side-label.indep { color: #8a97ab; }
+  .seat-block {
+    background: var(--card2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sb-text { flex: 1 1 auto; min-width: 0; }
+  .sb-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text); }
+  .sb-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+  .sb-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb-seats { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .sb-ava {
+    width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto;
+    image-rendering: pixelated; background: #e5e7ec; object-fit: cover;
+  }
+  @media (max-width: 900px) {
+    .seat-row { flex-direction: column; }
+    .seat-side { flex: none; width: 100%; }
+  }
+
+  /* 選挙バッジ・得票・増減 */
+  .election-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 800; background: #eef1fb; color: var(--accent2);
+    margin-left: 8px;
+  }
+  .election-badge.voting { background: #e7f6ec; color: #2e7d4f; }
+  .election-badge.counting { background: #fff4e0; color: #9a6a00; }
+  .election-badge.ended { background: #eee; color: #888; }
+  .sb-extra { margin-top: 3px; }
+  .sb-votes { font-size: 11px; color: var(--muted); }
+  .sb-delta { font-size: 12px; font-weight: 800; margin-left: 6px; }
+  .sb-delta.up { color: #2e9e5b; }
+  .sb-delta.down { color: #c0392b; }
+  .sb-delta.flat { color: #9aa0b4; }
+  .seat-block.clickable { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .seat-block.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+  .mcard.lost { opacity: .55; }
+  .mbadges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .mbadge {
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+    background: #eef1fb; color: var(--accent2);
+  }
+  .mbadge.votes { background: #f0f0f3; color: var(--muted); }
+  .mbadge.lost { background: #eee; color: #999; }
+
+  /* Web投票 */
+  .vote-open-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .vote-btn {
+    appearance: none; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 800;
+    padding: 10px 26px; letter-spacing: .05em;
+    box-shadow: 0 4px 12px rgba(58,91,217,.3);
+    transition: transform .12s, background .12s;
+  }
+  .vote-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+  .vote-btn:disabled { background: #b6bdd4; box-shadow: none; cursor: default; transform: none; }
+  .vote-status { font-size: 13px; color: var(--muted); }
+  .vote-status.voted { color: var(--ok); font-weight: 700; }
+
+  #vote-panel { align-items: stretch; }
+  #vote-panel .vote-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  #vote-panel .vote-head h3 { margin: 0; font-size: 18px; }
+  #vote-panel .vote-head .spacer { flex: 1; }
+  .vote-back {
+    appearance: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+    background: var(--card2); color: var(--text); font: inherit; font-size: 13px; font-weight: 700;
+    padding: 7px 16px;
+  }
+  .vote-back:hover { border-color: var(--accent); color: var(--accent); }
+  .vote-note { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  #vote-message { min-height: 20px; font-size: 13px; margin-bottom: 10px; }
+  #vote-message.err { color: var(--danger); }
+  #vote-message.ok { color: var(--ok); font-weight: 700; }
+  .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; width: 100%; }
+  .cand-card {
+    background: var(--card2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .cand-top { display: flex; gap: 10px; align-items: center; }
+  .cand-ava {
+    width: 44px; height: 44px; border-radius: 8px; flex: 0 0 auto;
+    image-rendering: pixelated; background: #e5e7ec; object-fit: cover;
+  }
+  .cand-name { font-weight: 800; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cand-meta { font-size: 11px; color: var(--muted); }
+  .cand-manifesto {
+    font-size: 12px; color: #444; line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: display;
+    overflow: hidden; white-space: pre-wrap; cursor: pointer; min-height: 20px;
+  }
+  .cand-manifesto:hover { color: var(--accent); }
+  .cand-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+  .cand-votes { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .cand-voted-tag { font-size: 11px; font-weight: 800; color: var(--ok); }
+  .vote-title {
+    margin: 2px 0 12px; font-size: 30px; font-weight: 900;
+    text-align: center; letter-spacing: .06em;
+  }
+  .cand-card.selectable { cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .cand-card.selectable:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .cand-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(58,91,217,.25); }
+  .vote-confirm-btn {
+    margin-top: 18px; width: 100%; max-width: 460px;
+    appearance: none; border: 0; border-radius: 16px; cursor: pointer;
+    background: var(--accent); color: #fff; font: inherit; font-size: 22px; font-weight: 900;
+    padding: 20px 0; letter-spacing: .1em;
+    box-shadow: 0 6px 20px rgba(58,91,217,.4);
+    transition: transform .12s, background .12s;
+  }
+  .vote-confirm-btn:hover:not(:disabled) { background: var(--accent2); transform: translateY(-2px); }
+  .vote-confirm-btn:disabled { background: #b6bdd4; box-shadow: none; cursor: default; transform: none; }
+  .vote-empty { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+
+  /* ヘッダーのログインエリア */
+  .login-area { display: flex; align-items: center; gap: 10px; }
+  .login-btn {
+    display: inline-block; padding: 8px 20px; border-radius: 8px;
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 800;
+    text-decoration: none; letter-spacing: .06em; white-space: nowrap;
+    transition: background .15s;
+  }
+  .login-btn:hover { background: var(--accent2); }
+  .login-user { display: flex; align-items: center; gap: 8px; }
+  .login-user img {
+    width: 36px; height: 36px; border-radius: 8px; image-rendering: pixelated;
+    background: #2a2f45; object-fit: cover; border: 2px solid rgba(255,255,255,.3);
+  }
+  .login-user span { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .03em; }
+
+  /* メンバーモーダル */
+  .mcard.clickable { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .mcard.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; padding: 20px;
+  }
+  .modal-card {
+    position: relative; background: #fff; border-radius: 14px;
+    max-width: 480px; width: 100%; padding: 26px 22px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .modal-close {
+    position: absolute; top: 8px; right: 12px; border: none;
+    background: none; font-size: 28px; line-height: 1; cursor: pointer; color: #888;
+  }
+  .modal-close:hover { color: #333; }
+  .modal-ava {
+    width: 64px; height: 64px; border-radius: 10px;
+    image-rendering: pixelated; background: #e5e7ec; object-fit: cover;
+  }
+  .modal-name { font-size: 20px; margin: 12px 0 4px; }
+  .modal-meta { display: flex; gap: 12px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .modal-h { font-size: 14px; color: var(--accent2); margin-bottom: 8px; letter-spacing: .05em; }
+  .modal-manifesto { font-size: 14px; line-height: 1.9; color: #444; white-space: pre-wrap; }
+
+  /* 憲法 */
+  .constitution { margin-top: 28px; }
+  .constitution .accent { color: #c0392b; }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <a href="../index.html" class="logo" target="_top">MATAKUSERVER</a>
+    <nav class="nav">
+      <ul>
+        <li><a href="../index.html" target="_top">HOME</a></li>
+        <li><a href="../index.html#join" target="_top">参加方法</a></li>
+        <li><a href="../index.html#howtoplay" target="_top">遊び方</a></li>
+        <li><a href="../index.html#rule" target="_top">ルール</a></li>
+        <li><a href="../index.html#about" target="_top">列島について</a></li>
+        <li><a href="index.html" class="active" target="_top">マタク鯖衆議院</a></li>
+        <li><a href="../company/" target="_top">マタク鯖会社一覧</a></li>
+      </ul>
+    </nav>
+    <div class="login-area">
+      <a href="login.html" class="login-btn" id="login-btn" target="_top">ログイン</a>
+      <div class="login-user" id="login-user" hidden>
+        <img id="login-ava" alt="" />
+        <span id="login-name"></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container dash">
+      <div class="dash-head">
+        <h2>マタク鯖衆議院</h2>
+        <span class="page-sub">半円扇型ビュー / 議席情報</span>
+        <span class="election-badge" id="election-badge" hidden></span>
+        <span class="live" id="live"><span class="pulse"></span>読み込み中...</span>
+      </div>
+
+      <div class="panel stage" id="stage-panel">
+    <div id="error" class="banner err"></div>
+    <div class="vote-open-row">
+      <button type="button" id="vote-open-btn" class="vote-btn" hidden>🗳 投票する</button>
+      <span id="vote-status" class="vote-status"></span>
+    </div>
+    <div class="chart-toggle" id="chart-toggle" role="tablist">
+      <button type="button" data-mode="party">政党</button>
+      <button type="button" data-mode="individual">個人</button>
+    </div>
+    <div class="seat-row">
+      <div class="seat-side" id="seat-left"></div>
+      <svg id="semicircle" viewBox="0 0 640 350" role="img" aria-label="議席の半円図"></svg>
+      <div class="seat-side" id="seat-right"></div>
+    </div>
+    <div class="stats">
+      <div class="stat seats"><div class="k">議席数</div><div class="v" id="stat-seats">&hellip;</div></div>
+      <div class="stat cap"><div class="k">定員</div><div class="v" id="stat-cap">&hellip;</div></div>
+      <div class="stat rem" id="stat-rem-box"><div class="k">残席</div><div class="v" id="stat-rem">&hellip;</div></div>
+    </div>
+    <div class="members" id="members"><div class="camp-empty loading">読み込み中...</div></div>
+    <div class="members" id="cabinet"><div class="camp-empty loading">読み込み中...</div></div>
+      </div>
+
+      <div class="panel stage" id="vote-panel" hidden>
+        <div class="vote-head">
+          <button type="button" id="vote-back-btn" class="vote-back">← 戻る</button>
+          <span class="spacer"></span>
+          <span id="vote-phase" class="election-badge"></span>
+        </div>
+        <h2 id="vote-title" class="vote-title"></h2>
+        <div class="vote-note">投票は1人1回のみ有効です。投票後の変更はできません。</div>
+        <div id="vote-message"></div>
+        <div class="cand-grid" id="candidate-list"><div class="vote-empty loading">読み込み中...</div></div>
+        <button type="button" id="vote-confirm-btn" class="vote-confirm-btn" disabled>投票する</button>
+      </div>
+
+      <div class="constitution">
+        <h2>🇯🇵 マタク鯖 日本列島鯖憲法</h2>
+        <p class="constitution-sub">― 鯖民民主的議会政治規約 ―</p>
+
+    <details class="rule-ch" open>
+      <summary>前文</summary>
+      <div class="rule-body">
+        <p>マタク鯖は、鯖民相互の自由、平等及び自治を尊重し、すべての鯖民が安心して活動できる環境を維持することを目的とする。</p>
+        <p>マタク鯖における最終的な主権は鯖主に属する。</p>
+        <p>鯖主の主権のもと、鯖民による民主的な議会政治を行い、鯖民の意思を鯖政に反映させることを基本とする。</p>
+        <p>ここに、マタク鯖における民主的議会政治の基本原則を定める。</p>
+        <p class="accent">[一～四条は廃止されました欠番です]</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第一章　鯖民の権利及び義務</summary>
+      <div class="rule-body">
+        <h4>第五条　鯖民</h4>
+        <p>マタク鯖の規約に定める要件を満たした者を、鯖民とする。</p>
+
+        <h4>第六条　鯖民の権利</h4>
+        <p>すべての鯖民は、法律及び本憲法の定めるところにより、次の権利を有する。</p>
+        <ul class="rule-list">
+          <li>一　選挙に参加する権利。</li>
+          <li>二　議員に立候補する権利。</li>
+          <li>三　議会に意見を提出する権利。</li>
+          <li>四　法律案を提出する権利。</li>
+          <li>五　異議申し立てを行う権利。</li>
+          <li>六　その他、鯖政に参加する権利。</li>
+        </ul>
+
+        <h4>第七条　平等</h4>
+        <p>すべての鯖民は、政治上平等に扱われなければならない。</p>
+        <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって、政治上の権利を差別してはならない。</p>
+
+        <h4>第八条　不当な処罰の禁止</h4>
+        <p>鯖民に対して、マタク鯖規約、法律その他の明確な根拠のない処罰を行ってはならない。</p>
+
+        <h4>第九条　鯖民の義務</h4>
+        <p>鯖民は、マタク鯖規約、本憲法及び法律を尊重しなければならない。</p>
+        <p>2　鯖民は、他の鯖民の権利を尊重しなければならない。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第三章　鯖民議会</summary>
+      <div class="rule-body">
+        <h4>第十条　鯖民議会</h4>
+        <p>鯖民議会は、鯖民が民主的に意見をまとめ、マタク鯖の自治及び政治を行うための機関である。</p>
+
+        <h4>第十一条　両議院</h4>
+        <p>鯖民議会は、衆議院及び運営院の二院をもって構成する。</p>
+
+        <h4>第十二条　代表</h4>
+        <p>両議院は、本憲法及び法律に基づいて選出又は構成された議員によって組織する。</p>
+
+        <h4>第十三条　議席</h4>
+        <p>衆議院の議席総数は、100議席とする。</p>
+        <p>2　一人の議員が複数の議席を保有することを認める。</p>
+        <p>3　一人が保有できる議席数の上限その他の細則は、公職選挙法で定める。</p>
+
+        <h4>第十四条　議員及び選挙人の資格</h4>
+        <p>議員及び選挙人の資格は、マタク鯖の鯖民に与えられる。</p>
+        <p>2　年齢、性別、使用する機種その他の合理的理由のない事由によって差別してはならない。</p>
+
+        <h4>第十五条　議会の議決</h4>
+        <p>議会における議決は、原則として議員が保有する議席を単位として行う。</p>
+        <p>2　具体的な議決方法は、法律又は議会規則で定める。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第四章　衆議院</summary>
+      <div class="rule-body">
+        <h4>第十六条　衆議院議員の任期</h4>
+        <p>衆議院議員の任期は、三か月とする。</p>
+        <p>2　衆議院が解散された場合、その時点で任期を終了する。</p>
+
+        <h4>第十七条　選挙</h4>
+        <p>衆議院議員は、鯖民による選挙によって選出する。</p>
+        <p>2　選挙は、得票数に応じて議席を配分する比例的な方法を基本とする。</p>
+        <p>3　具体的な選挙方法及び議席配分方法は、選挙法で定める。</p>
+
+        <h4>第十八条　総理大臣の指名</h4>
+        <p>総理大臣は、衆議院において総理大臣候補者に賛成した議員が保有する議席の合計が最も多い候補者を基本として決定する。</p>
+        <p>2　鯖主は、前項によって決定された者を総理大臣に任命する。</p>
+
+        <h4>第十九条　総理大臣の代理</h4>
+        <p>総理大臣は、あらかじめ代理総理大臣を定めなければならない。</p>
+        <p>2　総理大臣が議会その他の公務に出席できない場合、代理総理大臣がその職務を代行する。</p>
+
+        <h4>第二十条　議会への出席</h4>
+        <p>議員は、議会に出席し、議決に参加するものとする。</p>
+        <p>2　議員が議会を欠席又は遅刻した場合、その議員が保有する議席は、その議会において棄権として扱う。</p>
+        <p>3　すべての議席が棄権となった場合、その議案は成立しない。</p>
+
+        <h4>第二十一条　議会の招集</h4>
+        <p>総理大臣及び鯖主は、必要に応じて議会を招集することができる。</p>
+
+        <h4>第二十二条　衆議院の解散</h4>
+        <p>鯖主は、衆議院を解散することができる。</p>
+        <p>2　総理大臣が自ら衆議院を解散することを決定した場合、総理大臣は辞任しなければならない。</p>
+        <p>3　衆議院が解散された場合、総理大臣が速やかに新たな選挙を行う。</p>
+
+        <h4>第二十三条　法律の制定</h4>
+        <p>衆議院は、出席議員の保有する議席の過半数の賛成により、法律案を可決することができる。</p>
+
+        <h4>第二十四条　総理大臣の不信任</h4>
+        <p>衆議院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+        <p>2　不信任決議が成立した場合、総理大臣は辞任し、新たな総理大臣を指名する。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第五章　運営院</summary>
+      <div class="rule-body">
+        <h4>第二十五条　運営院</h4>
+        <p>運営院は、マタク鯖の運営に携わる者によって構成する。</p>
+        <p>2　運営院の議席及び構成員は、法律又は運営に関する規則によって定める。</p>
+
+        <h4>第二十六条　運営院の権限</h4>
+        <p>運営院は、サーバーの運営、管理及び技術的事項について審議する権限を有する。</p>
+
+        <h4>第二十七条　運営に関する法律</h4>
+        <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方の承認を必要とする。</p>
+        <p>2　前項の法律は、両院においてそれぞれ過半数の賛成を得なければならない。</p>
+
+        <h4>第二十八条　総理大臣の不信任</h4>
+        <p>運営院は、保有議席の過半数の賛成により、総理大臣に対する不信任を決議することができる。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第六章　法律</summary>
+      <div class="rule-body">
+        <h4>第二十九条　法律</h4>
+        <p>法律は、本憲法及びマタク鯖規約に基づき、鯖民及びサーバーの運営に必要な具体的な規則を定めるものである。</p>
+
+        <h4>第三十条　法案の提出</h4>
+        <p>法律案は、次の者が提出することができる。</p>
+        <ul class="rule-list">
+          <li>一　衆議院議員。</li>
+          <li>二　総理大臣。</li>
+          <li>三　運営院。</li>
+          <li>四　法律で定める方法により一定数以上の鯖民の賛同を得た者。</li>
+        </ul>
+
+        <h4>第三十一条　通常法律</h4>
+        <p>通常の法律は、衆議院において出席議員の保有する議席の過半数の賛成をもって可決する。</p>
+
+        <h4>第三十二条　運営関連法</h4>
+        <p>サーバーの運営、管理又は技術的事項に関する法律は、衆議院及び運営院の双方において過半数の賛成を得なければならない。</p>
+
+        <h4>第三十三条　公布</h4>
+        <p>成立した法律は、鯖主が公布する。</p>
+        <p>2　鯖主は、マタク鯖規約又は本憲法に反する法律を公布してはならない。</p>
+
+        <h4>第三十四条　施行</h4>
+        <p>法律は、公布された日から効力を有する。</p>
+        <p>2　法律に別の施行日を定めた場合は、その定める日から効力を有する。</p>
+
+        <h4>第三十五条　法律の改正及び廃止</h4>
+        <p>法律の改正又は廃止は、法律の制定と同じ手続によって行う。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第七章　異議申し立て</summary>
+      <div class="rule-body">
+        <h4>第三十六条　異議申し立ての権利</h4>
+        <p>すべての鯖民は、運営、議会、議員その他の鯖政について異議申し立てを行う権利を有する。</p>
+
+        <h4>第三十七条　異議申し立ての審議</h4>
+        <p>異議申し立てが行われた場合、鯖民議会はその内容を審議することができる。</p>
+        <p>2　鯖民議会の過半数が正式な議題として採択した場合、関係する機関又は者は、その決定を尊重しなければならない。</p>
+
+        <h4>第三十八条　運営への申し立て</h4>
+        <p>三人以上の鯖民による推薦がある場合、申し立てを行う者は運営に対して説明を求めることができる。</p>
+        <p>2　運営は、合理的な理由がない限り、これを拒んではならない。</p>
+
+        <h4>第三十九条　VCによる申し立て</h4>
+        <p>前条の申し立てについて、必要がある場合、鯖民は運営とのVCその他適切な方法による話し合いを求めることができる。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第九章　規範の関係</summary>
+      <div class="rule-body">
+        <h4>第四十二条　マタク鯖規約の最高性</h4>
+        <p>マタク鯖規約は、マタク鯖における最高の規範である。</p>
+        <p>2　本憲法、法律、政令、条例、運営規則その他すべての規定及び決定は、マタク鯖規約に反してはならない。</p>
+
+        <h4>第四十三条　本憲法の位置</h4>
+        <p>本憲法は、マタク鯖規約に基づき、マタク鯖における鯖民の自治及び民主的議会政治の制度を定める基本規範である。</p>
+        <p>2　法律その他の規則は、本憲法及びマタク鯖規約に反してはならない。</p>
+
+        <h4>第四十四条　下位規則</h4>
+        <p>政令、条例、運営規則その他の規則は、法律、本憲法及びマタク鯖規約に基づいて制定されなければならない。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>第十章　憲法の改正</summary>
+      <div class="rule-body">
+        <h4>第四十五条　憲法改正</h4>
+        <p>本憲法の改正は、鯖主が発議する。</p>
+        <p>2　鯖主は、憲法改正にあたり、鯖民議会の意見を聴取するものとする。</p>
+
+        <h4>第四十六条　改正の公布</h4>
+        <p>改正された本憲法は、鯖主が公布した日から効力を有する。</p>
+      </div>
+    </details>
+
+    <details class="rule-ch">
+      <summary>署名</summary>
+      <div class="rule-body">
+        <p>鯖主　藤原真拓</p>
+      </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>&copy; MATAKUSERVER</p>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-close" id="modal-close" aria-label="閉じる">&times;</button>
+    <img class="modal-ava" id="modal-ava" alt="">
+    <h3 class="modal-name" id="modal-name"></h3>
+    <div class="modal-meta"><span id="modal-party"></span><span id="modal-seats"></span></div>
+    <h4 class="modal-h">公約</h4>
+    <p class="modal-manifesto" id="modal-manifesto"></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DIET_URLS = [
+    "./diet.json",
+    "http://n3.host.ringonw.com:3315/diet.json",
+    "https://r.jina.ai/http://n3.host.ringonw.com:3315/diet.json"
+  ];
+  var INDEP = "無所属";
+  var INDEP_COLOR = "#8a97ab";
+  var OFFLINE_UUID = /^00000000-0000-0000-0009-/;
+  // 前回選挙結果（diet.jsonに previous が無い場合のデフォルト）
+  var DEFAULT_PREVIOUS_PARTIES = {
+    "自民党MATAKU": 36,
+    "政策実現党": 36,
+    "札幌維新の会": 18,
+    "無所属": 5
+  };
+
+  var state = {
+    seats: 0, capacity: 0,
+    members: [], primeMinister: "", primeMinisterParty: "",
+    cabinet: [], parties: [], independentSeats: 0,
+    election: null, previous: null, updatedAt: "",
+    chartMode: "party"
+  };
+
+  var PALETTE = ["#4f8cff", "#ff5c6c", "#33c48d", "#ffb020", "#7c5cff",
+                 "#00c2d1", "#ff8a3d", "#e45cff", "#8bc34a", "#f44336"];
+
+  // ---------- 半円の描画 ----------
+  function polar(cx, cy, r, deg) {
+    var rad = deg * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
+  }
+  function sectorPath(cx, cy, rIn, rOut, a0, a1) {
+    var steps = Math.max(2, Math.ceil(Math.abs(a0 - a1) / 2));
+    var pts = [], i, a;
+    for (i = 0; i <= steps; i++) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, rOut, a));
+    }
+    for (i = steps; i >= 0; i--) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, rIn, a));
+    }
+    var d = "M " + pts[0].x.toFixed(2) + " " + pts[0].y.toFixed(2);
+    for (i = 1; i < pts.length; i++) {
+      d += " L " + pts[i].x.toFixed(2) + " " + pts[i].y.toFixed(2);
+    }
+    return d + " Z";
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var steps = Math.max(2, Math.ceil(Math.abs(a0 - a1) / 2));
+    var pts = [], i, a;
+    for (i = 0; i <= steps; i++) {
+      a = a0 + (a1 - a0) * i / steps;
+      pts.push(polar(cx, cy, r, a));
+    }
+    var d = "M " + pts[0].x.toFixed(2) + " " + pts[0].y.toFixed(2);
+    for (i = 1; i < pts.length; i++) {
+      d += " L " + pts[i].x.toFixed(2) + " " + pts[i].y.toFixed(2);
+    }
+    return d;
+  }
+
+  function lighten(hex, amount) {
+    var c = (hex || "#4f8cff").replace("#", "");
+    if (c.length !== 6) c = "4f8cff";
+    var r = parseInt(c.substr(0, 2), 16);
+    var g = parseInt(c.substr(2, 2), 16);
+    var b = parseInt(c.substr(4, 2), 16);
+    r = Math.round(r + (255 - r) * amount);
+    g = Math.round(g + (255 - g) * amount);
+    b = Math.round(b + (255 - b) * amount);
+    return "#" + [r, g, b].map(function (v) {
+      return ("0" + v.toString(16)).slice(-2);
+    }).join("");
+  }
+
+  function escapeXmlText(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  // 表示用: 先頭の「.」と末尾の数字群を省略
+  function cleanName(name) {
+    return String(name == null ? "" : name)
+      .replace(/^\.+/, "")
+      .replace(/[0-9]+$/, "");
+  }
+
+  function sumSeats(arr) {
+    return (arr || []).reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+  }
+
+  function el(tag, cls) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  function colorForParty(name) {
+    if (!name || name === INDEP) return INDEP_COLOR;
+    for (var i = 0; i < state.parties.length; i++) {
+      if (state.parties[i].name === name) return state.parties[i].color;
+    }
+    return "#4f8cff";
+  }
+
+  function membersOfParty(name) {
+    return state.members.filter(function (m) {
+      return m.party === name && (m.seats | 0) > 0;
+    }).sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+  }
+
+  // 半円に描く区画を生成（政党モード / 個人モード）
+  function buildChartBlocks() {
+    var left = [], right = [];
+    var ruling = state.parties.filter(function (p) { return p.ruling && (p.seats | 0) > 0; })
+                              .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+    var others = state.parties.filter(function (p) { return !p.ruling && (p.seats | 0) > 0; })
+                              .sort(function (a, b) { return (a.seats | 0) - (b.seats | 0); });
+
+    if (state.chartMode === "individual") {
+      // 個人: 政党ごとにまとめる
+      ruling.forEach(function (p) {
+        membersOfParty(p.name).forEach(function (m) {
+          left.push({ name: m.name, seats: m.seats | 0, color: p.color, side: "ruling" });
+        });
+      });
+      var indep = state.members.filter(function (m) { return !m.party && (m.seats | 0) > 0; })
+                               .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+      indep.forEach(function (m) {
+        right.push({ name: m.name, seats: m.seats | 0, color: INDEP_COLOR, side: "independent" });
+      });
+      var rest = state.independentSeats - sumSeats(indep);
+      if (rest > 0) right.push({ name: INDEP, seats: rest, color: INDEP_COLOR, side: "independent" });
+      others.forEach(function (p) {
+        membersOfParty(p.name).forEach(function (m) {
+          right.push({ name: m.name, seats: m.seats | 0, color: p.color, side: "opposition" });
+        });
+      });
+    } else {
+      // 政党: 1政党 = 1区画
+      ruling.forEach(function (p) {
+        left.push({ name: p.name, seats: p.seats | 0, color: p.color, side: "ruling" });
+      });
+      if (state.independentSeats > 0) {
+        right.push({ name: INDEP, seats: state.independentSeats, color: INDEP_COLOR, side: "independent" });
+      }
+      others.forEach(function (p) {
+        right.push({ name: p.name, seats: p.seats | 0, color: p.color, side: "opposition" });
+      });
+    }
+    return { left: left, right: right };
+  }
+
+  // 与党=赤 / 野党=青 / 無所属=グレー の縁取り
+  function sideStroke(side) {
+    if (side === "ruling") return "#ff3b4e";
+    if (side === "opposition") return "#3b82f6";
+    return "#9aa7bd";
+  }
+
+  function renderChart(left, right, capacity, progress) {
+    var svg = document.getElementById("semicircle");
+    var W = 640, H = 350, cx = W / 2, cy = H - 18;
+    var rOut = 288, rIn = 120;
+    var rMid = (rIn + rOut) / 2;
+    var p = progress == null ? 1 : progress;
+    var out = [];
+
+    out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, 180, 0) +
+             '" fill="#eef0f6" stroke="#dfe3ec" stroke-width="1"/>');
+
+    var total = sumSeats(left) + sumSeats(right);
+    if (total > 0) {
+      var labels = [];
+      var done = p >= 1;
+
+      function labelAt(midA, m, span) {
+        var seats = m.seats | 0;
+        var name = m.name || "";
+        var chord = 2 * rMid * Math.abs(Math.sin((span || 180) * Math.PI / 360));
+        var maxW = Math.max(30, chord * 0.92);
+        var fs = Math.max(8, Math.min(22, maxW / Math.max(1, name.length * 0.62)));
+        var fs2 = Math.max(8, Math.min(15, fs * 0.82));
+        var dy1 = -(fs * 0.6 + fs2 * 0.3);
+        var dy2 = fs * 0.55 + fs2 * 0.35;
+        var pos = polar(cx, cy, rMid, midA);
+        var x = pos.x.toFixed(2);
+        labels.push('<text x="' + x + '" y="' + (pos.y + dy1).toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central"' +
+                 ' fill="#ffffff" font-size="' + fs.toFixed(1) + '" font-weight="700">' +
+                 escapeXmlText(name) + '</text>');
+        labels.push('<text x="' + x + '" y="' + (pos.y + dy2).toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central"' +
+                 ' fill="#ffffff" fill-opacity="0.85" font-size="' + fs2.toFixed(1) + '" font-weight="700">' +
+                 seats + '</text>');
+      }
+
+      // 右側: 無所属 → 野党（議席の少ない順）を右端(0)から左へ
+      var start = 0;
+      var fStart = 0;
+      right.forEach(function (m) {
+        var span = 180 * (m.seats | 0) / total;
+        var fEnd = fStart + span;
+        var end = start + span * p;
+        var color = m.color || "#4f8cff";
+        out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, end, start) +
+                 '" fill="' + color + '"/>');
+        var chord = 2 * rMid * Math.abs(Math.sin(span * Math.PI / 360));
+        if (m.name && done && chord >= 22) labelAt((fStart + fEnd) / 2, m, span);
+        start = end;
+        fStart = fEnd;
+      });
+
+      // 左側: 与党を左端(180)から右へ（左に固める）
+      var lStart = 180;
+      var lfStart = 180;
+      left.forEach(function (m) {
+        var span = 180 * (m.seats | 0) / total;
+        var lfEnd = lfStart - span;
+        var lEnd = lStart - span * p;
+        var color = m.color || "#4f8cff";
+        out.push('<path d="' + sectorPath(cx, cy, rIn, rOut, lStart, lEnd) +
+                 '" fill="' + color + '"/>');
+        var chord = 2 * rMid * Math.abs(Math.sin(span * Math.PI / 360));
+        if (m.name && done && chord >= 22) labelAt((lfStart + lfEnd) / 2, m, span);
+        lStart = lEnd;
+        lfStart = lfEnd;
+      });
+
+      // 外周10pxの縁取り: 実際の議席割合に応じて 与党=赤 / 野党=青
+      var leftSpan = 180 * sumSeats(left) / total * p;
+      var rightSpan = 180 * sumSeats(right) / total * p;
+      out.push('<path d="' + arcPath(cx, cy, rOut + 10, 180, 180 - leftSpan) +
+               '" fill="none" stroke="#ff3b4e" stroke-width="10"/>' +
+               '<path d="' + arcPath(cx, cy, rOut + 10, 0, rightSpan) +
+               '" fill="none" stroke="#3b82f6" stroke-width="10"/>');
+
+      // 過半数(50%)・1/3の区切り線とラベル
+      var marks = [
+        { a: 90, label: "過半数" },
+        { a: 120, label: "1/3" },
+        { a: 60, label: "2/3" }
+      ];
+      marks.forEach(function (mk) {
+        var pi = polar(cx, cy, rIn, mk.a);
+        var po = polar(cx, cy, rOut, mk.a);
+        out.push('<line x1="' + pi.x.toFixed(2) + '" y1="' + pi.y.toFixed(2) +
+                 '" x2="' + po.x.toFixed(2) + '" y2="' + po.y.toFixed(2) +
+                 '" stroke="#9aa0b4" stroke-width="2"/>');
+        var lp = polar(cx, cy, rOut + 26, mk.a);
+        out.push('<text x="' + lp.x.toFixed(2) + '" y="' + lp.y.toFixed(2) +
+                 '" text-anchor="middle" dominant-baseline="central" fill="#9aa0b4" ' +
+                 'font-size="14" font-weight="700">' + mk.label + '</text>');
+      });
+      out = out.concat(labels);
+    }
+
+    var rulingSeats = sumSeats(left);
+    var oppSeats = Math.max(0, capacity - rulingSeats);
+    var rp = Math.round(rulingSeats * p);
+    var op = Math.round(oppSeats * p);
+    var lx = cx - 74, rx = cx + 74;
+    out.push('<text x="' + lx + '" y="' + (cy - 62) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="15" font-weight="700" letter-spacing="2">与党</text>');
+    out.push('<text x="' + lx + '" y="' + (cy - 12) + '" text-anchor="middle" fill="#ff3b4e" ' +
+             'font-size="46" font-weight="800" style="font-variant-numeric:tabular-nums">' + rp + '</text>');
+    out.push('<text x="' + rx + '" y="' + (cy - 62) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="15" font-weight="700" letter-spacing="2">野党</text>');
+    out.push('<text x="' + rx + '" y="' + (cy - 12) + '" text-anchor="middle" fill="#3b82f6" ' +
+             'font-size="46" font-weight="800" style="font-variant-numeric:tabular-nums">' + op + '</text>');
+    out.push('<text x="' + cx + '" y="' + (cy + 26) + '" text-anchor="middle" fill="#888888" ' +
+             'font-size="13" style="font-variant-numeric:tabular-nums">定員 ' + capacity + '</text>');
+
+    svg.innerHTML = out.join("");
+  }
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  var chartRaf = null;
+  function animateChart() {
+    if (chartRaf) cancelAnimationFrame(chartRaf);
+    var blocks = buildChartBlocks();
+    var start = null;
+    var dur = 1200;
+    function step(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      renderChart(blocks.left, blocks.right, state.capacity, easeOutCubic(t));
+      if (t < 1) { chartRaf = requestAnimationFrame(step); }
+      else { chartRaf = null; }
+    }
+    chartRaf = requestAnimationFrame(step);
+  }
+
+  function mcard(o) {
+    var c = el("div", "mcard" + (o.manifesto ? " clickable" : ""));
+    c.style.borderColor = o.color || "#4f8cff";
+    if (o.id) {
+      var img = document.createElement("img");
+      img.className = "mava";
+      img.src = "https://mc-heads.net/avatar/" + encodeURIComponent(o.id) + "/64";
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = function () { img.style.display = "none"; };
+      c.appendChild(img);
+    }
+    var txt = el("div", "mtxt");
+    var nm = el("div", "mname");
+    nm.textContent = o.name || "名称未設定";
+    txt.appendChild(nm);
+    var pt = el("div", "mparty");
+    pt.textContent = o.party || INDEP;
+    if (o.color) pt.style.color = o.color;
+    txt.appendChild(pt);
+    var sub = el("div", "msub");
+    sub.textContent = o.sub != null ? o.sub : ((o.seats | 0) + "議席");
+    txt.appendChild(sub);
+    if (o.elected === false) c.classList.add("lost");
+    if (o.incumbent || o.votes > 0 || o.elected === false) {
+      var bd = el("div", "mbadges");
+      if (o.incumbent) {
+        var b1 = el("span", "mbadge"); b1.textContent = "現職"; bd.appendChild(b1);
+      }
+      if (o.votes > 0) {
+        var b2 = el("span", "mbadge votes");
+        b2.textContent = "得票 " + Number(o.votes).toLocaleString("ja-JP");
+        bd.appendChild(b2);
+      }
+      if (o.elected === false) {
+        var b3 = el("span", "mbadge lost"); b3.textContent = "落選"; bd.appendChild(b3);
+      }
+      txt.appendChild(bd);
+    }
+    c.appendChild(txt);
+    if (o.manifesto) {
+      c.title = "クリックで公約を表示";
+      c.addEventListener("click", function () { openMemberModal(o); });
+    }
+    return c;
+  }
+
+  function campTitle(label, count) {
+    var t = el("div", "camp-title");
+    var l = el("span"); l.textContent = label;
+    var c = el("span", "cnt"); c.textContent = count;
+    var ln = el("span", "ln");
+    t.appendChild(l);
+    t.appendChild(c);
+    t.appendChild(ln);
+    return t;
+  }
+
+  function partyColumn(p) {
+    var col = el("div", "party-col" + (p.ruling ? " ruling" : ""));
+    var head = el("div", "pc-head");
+    var nm = el("span", "pc-name");
+    nm.textContent = p.name;
+    nm.style.color = p.color;
+    head.appendChild(nm);
+    if (p.ruling) {
+      var b = el("span", "pc-badge");
+      b.textContent = "与党";
+      head.appendChild(b);
+    }
+    var sc = el("span", "pc-seats");
+    sc.textContent = (p.seats | 0) + "議席";
+    head.appendChild(sc);
+    col.appendChild(head);
+
+    var list = el("div", "pc-list");
+    var rows = (p.members || []).map(function (mm) {
+      var found = null;
+      for (var i = 0; i < state.members.length; i++) {
+        if (state.members[i].id === mm.uuid) { found = state.members[i]; break; }
+      }
+      return {
+        name: found ? found.name : (cleanName(mm.name) || "名称未設定"),
+        id: mm.uuid || "",
+        seats: found ? (found.seats | 0) : 0,
+        color: p.color,
+        manifesto: found ? found.manifesto : "",
+        avaId: found ? found.avaId : "",
+        votes: found ? found.votes : null,
+        elected: found ? found.elected : true,
+        incumbent: found ? found.incumbent : false
+      };
+    }).sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+
+    if (!rows.length) {
+      var empty = el("div", "camp-empty");
+      empty.textContent = "所属議員なし";
+      list.appendChild(empty);
+    } else {
+      rows.forEach(function (m) {
+        list.appendChild(mcard({
+          name: m.name, id: m.id, party: p.name, seats: m.seats, color: p.color,
+          manifesto: m.manifesto, avaId: m.avaId,
+          votes: m.votes, elected: m.elected, incumbent: m.incumbent
+        }));
+      });
+    }
+    col.appendChild(list);
+    return col;
+  }
+
+  function renderMembers() {
+    var root = document.getElementById("members");
+    root.innerHTML = "";
+
+    var camp = el("div", "camp");
+    camp.appendChild(campTitle("議員", state.members.length + "名 / " + sumSeats(state.members) + "議席"));
+
+    var cols = el("div", "party-cols");
+    var ordered = state.parties.slice().sort(function (a, b) {
+      if (a.ruling !== b.ruling) return a.ruling ? -1 : 1;
+      return (b.seats | 0) - (a.seats | 0);
+    });
+    var any = false;
+    ordered.forEach(function (p) {
+      cols.appendChild(partyColumn(p));
+      any = true;
+    });
+
+    // 無所属（所属政党なしの議員）
+    var indep = state.members.filter(function (m) { return !m.party; })
+                             .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+    if (indep.length) {
+      cols.appendChild(partyColumn({
+        name: INDEP, seats: state.independentSeats, ruling: false, color: INDEP_COLOR,
+        members: indep.map(function (m) { return { name: m.name, uuid: m.id }; })
+      }));
+      any = true;
+    }
+
+    if (!any) {
+      var e = el("div", "camp-empty");
+      e.textContent = "議員が登録されていません。";
+      cols.appendChild(e);
+    }
+    camp.appendChild(cols);
+    root.appendChild(camp);
+  }
+
+  function renderCabinet() {
+    var root = document.getElementById("cabinet");
+    root.innerHTML = "";
+
+    var cards = [];
+    var seen = {};
+    var pmParty = state.primeMinisterParty || "";
+    var pm = state.members.filter(function (m) { return m.isPM; })[0];
+    if (pm) {
+      cards.push({ name: pm.name, id: pm.id, party: pm.party || pmParty, sub: "内閣総理大臣", color: pm.color, manifesto: pm.manifesto, avaId: pm.avaId, votes: pm.votes, elected: pm.elected, incumbent: pm.incumbent });
+      seen[pm.id] = true;
+    } else if (state.primeMinister) {
+      cards.push({ name: cleanName(state.primeMinister), id: "", party: pmParty, sub: "内閣総理大臣", color: "#7c5cff" });
+    }
+    (state.cabinet || []).forEach(function (c, i) {
+      var id = c.uuid || ("cab" + i);
+      if (seen[id]) return;
+      seen[id] = true;
+      var mm = null;
+      for (var j = 0; j < state.members.length; j++) {
+        if (state.members[j].id === c.uuid) { mm = state.members[j]; break; }
+      }
+      cards.push({
+        name: cleanName(c.name) || "名称未設定",
+        id: c.uuid || "",
+        party: c.party || "",
+        sub: c.role || "閣僚",
+        color: colorForParty(c.party),
+        manifesto: mm ? mm.manifesto : "",
+        avaId: mm ? mm.avaId : "",
+        votes: mm ? mm.votes : null,
+        elected: mm ? mm.elected : true,
+        incumbent: mm ? mm.incumbent : false
+      });
+    });
+    if (!cards.length) return;
+
+    var camp = el("div", "camp");
+    camp.appendChild(campTitle("内閣", cards.length + "名"));
+    var row = el("div", "member-row");
+    cards.forEach(function (c) { row.appendChild(mcard(c)); });
+    camp.appendChild(row);
+    root.appendChild(camp);
+  }
+
+  function seatBlock(name, seats, color, avatarId, info) {
+    var b = el("div", "seat-block");
+    var txt = el("div", "sb-text");
+    var nm = el("div", "sb-name");
+    var dot = el("span", "sb-dot");
+    dot.style.background = color || INDEP_COLOR;
+    var nt = el("span", "sb-name-text");
+    nt.textContent = name;
+    nm.appendChild(dot);
+    nm.appendChild(nt);
+    var sn = el("div", "sb-seats");
+    sn.textContent = seats;
+    if (info && info.delta != null) {
+      var dl = el("span", "sb-delta " +
+        (info.delta > 0 ? "up" : info.delta < 0 ? "down" : "flat"));
+      dl.textContent = info.delta === 0 ? "±0" : (info.delta > 0 ? "+" : "") + info.delta;
+      sn.appendChild(dl);
+    }
+    txt.appendChild(nm);
+    txt.appendChild(sn);
+    if (info && (info.votes > 0 || info.sub)) {
+      var ex = el("div", "sb-extra");
+      if (info.votes > 0) {
+        var vt = el("div", "sb-votes");
+        vt.textContent = "得票 " + Number(info.votes).toLocaleString("ja-JP");
+        ex.appendChild(vt);
+      }
+      if (info.sub) {
+        var st = el("div", "sb-votes");
+        st.textContent = info.sub;
+        ex.appendChild(st);
+      }
+      txt.appendChild(ex);
+    }
+    b.appendChild(txt);
+    if (avatarId) {
+      var img = document.createElement("img");
+      img.className = "sb-ava";
+      img.src = "https://mc-heads.net/avatar/" +
+        encodeURIComponent(String(avatarId).replace(/^\.+/, "")) + "/64";
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = function () { img.style.display = "none"; };
+      b.appendChild(img);
+    }
+    if (info && info.onClick) {
+      b.classList.add("clickable");
+      b.title = "クリックで公約を表示";
+      b.addEventListener("click", info.onClick);
+    }
+    return b;
+  }
+
+  function sideLabel(text, cls) {
+    var l = el("div", "side-label " + cls);
+    l.textContent = text;
+    return l;
+  }
+
+  function renderSeatBoard() {
+    var L = document.getElementById("seat-left");
+    var R = document.getElementById("seat-right");
+    if (!L || !R) return;
+    L.innerHTML = "";
+    R.innerHTML = "";
+
+    function topMemberOfParty(name) {
+      var list = membersOfParty(name);
+      for (var i = 0; i < list.length; i++) {
+        if (!list[i].avaBad) return list[i];
+      }
+      return null;
+    }
+
+    // 前回議席数（増減表示用）。APIに previous が無ければデフォルト値を使用
+    var prevMap = {};
+    var prevParties = (state.previous && state.previous.parties) || [];
+    if (prevParties.length) {
+      prevParties.forEach(function (pp) {
+        if (pp && pp.name != null) prevMap[pp.name] = pp.seats | 0;
+      });
+    } else {
+      Object.keys(DEFAULT_PREVIOUS_PARTIES).forEach(function (k) {
+        prevMap[k] = DEFAULT_PREVIOUS_PARTIES[k];
+      });
+    }
+    function prevSeats(name) {
+      if (prevMap[name] != null) return prevMap[name];
+      return Object.keys(prevMap).length ? 0 : null;
+    }
+    function partyInfo(p) {
+      var prev = prevSeats(p.name);
+      return {
+        votes: p.votes,
+        delta: prev != null ? (p.seats | 0) - prev : null,
+        onClick: p.manifesto ? function () {
+          openMemberModal({
+            name: p.name, party: "政党", seats: p.seats | 0,
+            sub: "", manifesto: p.manifesto, avaId: "", id: ""
+          });
+        } : null
+      };
+    }
+
+    L.appendChild(sideLabel("与党", "ruling"));
+    state.parties.filter(function (p) { return p.ruling && (p.seats | 0) > 0; })
+      .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); })
+      .forEach(function (p) {
+        var top = topMemberOfParty(p.name);
+        L.appendChild(seatBlock(p.name, p.seats | 0, p.color, top ? top.avaId : "", partyInfo(p)));
+      });
+
+    R.appendChild(sideLabel("野党", "opposition"));
+    state.parties.filter(function (p) { return !p.ruling && (p.seats | 0) > 0; })
+      .sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); })
+      .forEach(function (p) {
+        var top = topMemberOfParty(p.name);
+        R.appendChild(seatBlock(p.name, p.seats | 0, p.color, top ? top.avaId : "", partyInfo(p)));
+      });
+
+    var indep = state.members.filter(function (m) { return !m.party && (m.seats | 0) > 0; })
+      .sort(function (a, b) {
+        if (a.avaBad !== b.avaBad) return a.avaBad ? 1 : -1;
+        return (b.seats | 0) - (a.seats | 0);
+      });
+    if (indep.length) {
+      var lbl = sideLabel("無所属", "indep");
+      var prevIndep = prevSeats("無所属");
+      var curIndep = indep.reduce(function (a, m) { return a + (m.seats | 0); }, 0);
+      if (prevIndep != null) {
+        var dIndep = curIndep - prevIndep;
+        var dl = el("span", "sb-delta " +
+          (dIndep > 0 ? "up" : dIndep < 0 ? "down" : "flat"));
+        dl.textContent = dIndep === 0 ? "±0" : (dIndep > 0 ? "+" : "") + dIndep;
+        lbl.appendChild(dl);
+      }
+      R.appendChild(lbl);
+      indep.forEach(function (m) {
+        R.appendChild(seatBlock(m.name, m.seats | 0, INDEP_COLOR, m.avaBad ? "" : m.avaId,
+          { votes: m.votes }));
+      });
+    }
+  }
+
+  var ELECTION_PHASES = {
+    campaign: ["立候補期間", "campaign"],
+    voting: ["投票期間", "voting"],
+    counting: ["開票中", "counting"],
+    ended: ["選挙終了", "ended"]
+  };
+
+  function updateElectionBadge() {
+    var badge = document.getElementById("election-badge");
+    if (!badge) return;
+    var el = state.election;
+    if (!el || !el.phase || !ELECTION_PHASES[el.phase]) {
+      badge.hidden = true;
+      return;
+    }
+    var info = ELECTION_PHASES[el.phase];
+    var text = (el.name ? el.name + " " : "") + info[0];
+    if (el.endsAt && el.phase !== "ended") {
+      var end = new Date(el.endsAt).getTime();
+      if (!isNaN(end)) {
+        var diff = end - Date.now();
+        if (diff > 0) {
+          var days = Math.floor(diff / 86400000);
+          var hours = Math.floor((diff % 86400000) / 3600000);
+          text += days > 0 ? "（あと" + days + "日）" : "（あと" + Math.max(1, hours) + "時間）";
+        }
+      }
+    }
+    badge.textContent = text;
+    badge.className = "election-badge " + info[1];
+    badge.hidden = false;
+  }
+
+  function updateToggle() {
+    var btns = document.querySelectorAll("#chart-toggle button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].className = btns[i].getAttribute("data-mode") === state.chartMode ? "on" : "";
+    }
+  }
+
+  function setupToggle() {
+    var btns = document.querySelectorAll("#chart-toggle button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function () {
+        state.chartMode = this.getAttribute("data-mode");
+        updateToggle();
+        animateChart();
+      });
+    }
+    updateToggle();
+  }
+
+  function render() {
+    document.getElementById("stat-seats").textContent = state.seats;
+    document.getElementById("stat-cap").textContent = state.capacity;
+    var rem = state.capacity - state.seats;
+    var remBox = document.getElementById("stat-rem-box");
+    var remVal = document.getElementById("stat-rem");
+    if (rem < 0) {
+      remBox.className = "stat over";
+      remVal.textContent = "+" + Math.abs(rem) + " 超過";
+    } else {
+      remBox.className = "stat rem";
+      remVal.textContent = rem;
+    }
+    animateChart();
+    updateElectionBadge();
+    renderSeatBoard();
+    renderMembers();
+    renderCabinet();
+  }
+
+  function showError(message) {
+    var e = document.getElementById("error");
+    e.textContent = message;
+    e.className = "banner show err";
+    document.getElementById("live").innerHTML = '<span class="pulse" style="background:var(--danger)"></span>読み込み失敗';
+  }
+
+  // 前後にテキストが付いた JSON（r.jina.ai などのプロキシ応答）でも解析できるようにする
+  function parseJsonLoose(text) {
+    if (text == null) throw new Error("empty response");
+    var s = String(text).trim();
+    try { return JSON.parse(s); } catch (e) { /* fall through */ }
+    var a = s.indexOf("{");
+    var b = s.lastIndexOf("}");
+    if (a >= 0 && b > a) return JSON.parse(s.slice(a, b + 1));
+    throw new Error("invalid json");
+  }
+
+  function fetchJson(url) {
+    return fetch(url, { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.text();
+      })
+      .then(function (text) { return parseJsonLoose(text); });
+  }
+
+  // アバター取得IDを決定。オフラインUUIDはmc-headsで解決できないため nickname/name のユーザー名を使う
+  function pickAvaId(m) {
+    var u = String(m.uuid || "");
+    if (u && !OFFLINE_UUID.test(u)) return { id: u, bad: false };
+    var n = String(m.nickname || "").replace(/^\.+/, "").trim();
+    if (/^[A-Za-z0-9_]{3,16}$/.test(n)) return { id: n, bad: false };
+    var d = String(m.name || "").replace(/^\.+/, "").trim();
+    if (/^[A-Za-z0-9_]{3,16}$/.test(d)) return { id: d, bad: false };
+    return { id: "", bad: true };
+  }
+
+  function applyData(data) {
+    data = data || {};
+    state.capacity = (data.totalSeats) | 0;
+    state.primeMinister = data.primeMinister || "";
+    state.primeMinisterParty = data.primeMinisterParty || "";
+    state.cabinet = data.cabinet || [];
+    state.election = data.election || null;
+    state.previous = data.previous || null;
+    state.updatedAt = data.updatedAt || "";
+
+    // 与党 = 閣僚が所属している政党（内閣総理大臣の所属政党を含む）
+    var rulingSet = {};
+    state.cabinet.forEach(function (c) { if (c && c.party) rulingSet[c.party] = true; });
+    if (state.primeMinisterParty) rulingSet[state.primeMinisterParty] = true;
+
+    state.parties = (data.parties || []).map(function (p, i) {
+      var name = (p && p.name) ? String(p.name) : INDEP;
+      return {
+        name: name,
+        seats: (p && p.seats) | 0,
+        ruling: !!rulingSet[name],
+        leader: (p && p.leader) || "",
+        memberCount: (p && p.memberCount) | 0,
+        members: (p && p.members) || [],
+        votes: p && p.votes != null ? p.votes : null,
+        manifesto: (p && p.manifesto) || "",
+        color: (p && p.color) || PALETTE[i % PALETTE.length]
+      };
+    });
+
+    var pmKey = cleanName(state.primeMinister);
+    state.members = (data.members || []).map(function (m, i) {
+      var name = cleanName(m.name) || "名称未設定";
+      var ava = pickAvaId(m);
+      return {
+        name: name,
+        nickname: m.nickname || "",
+        party: m.party || "",
+        seats: m.seats | 0,
+        manifesto: m.manifesto || "",
+        hasDot: /^\./.test(String(m.name || "")),
+        avaId: ava.id,
+        avaBad: ava.bad,
+        votes: m.votes != null ? m.votes : null,
+        elected: m.elected !== false,
+        incumbent: !!m.incumbent,
+        isPM: !!pmKey && name === pmKey,
+        id: m.uuid || name,
+        color: m.party ? colorForParty(m.party) : INDEP_COLOR
+      };
+    });
+    state.members.sort(function (a, b) { return (b.seats | 0) - (a.seats | 0); });
+    state.seats = sumSeats(state.members);
+
+    // 総議席と政党議席合計の差は「無所属」
+    var partySeats = sumSeats(state.parties);
+    state.independentSeats = Math.max(0, state.capacity - partySeats);
+  }
+
+  function load() {
+    var i = 0;
+    function attempt() {
+      if (i >= DIET_URLS.length) {
+        showError("diet.json の読み込みに失敗しました。");
+        return;
+      }
+      fetchJson(DIET_URLS[i++])
+        .then(function (data) {
+          applyData(data);
+          document.getElementById("error").className = "banner";
+          document.getElementById("live").innerHTML = '<span class="pulse"></span>' +
+            (state.updatedAt ? "データ更新 " : "最終更新 ") +
+            (state.updatedAt
+              ? new Date(state.updatedAt).toLocaleString("ja-JP")
+              : new Date().toLocaleTimeString("ja-JP"));
+          render();
+          loadElection();
+        })
+        .catch(function () { attempt(); });
+    }
+    attempt();
+  }
+
+  // ---------- メンバーモーダル ----------
+  var modalOverlay = document.getElementById("modal-overlay");
+  var modalAva = document.getElementById("modal-ava");
+
+  function openMemberModal(o) {
+    document.getElementById("modal-name").textContent = o.name || "名称未設定";
+    document.getElementById("modal-party").textContent = o.party || INDEP;
+    document.getElementById("modal-seats").textContent =
+      (o.seats | 0) + "議席" + (o.sub ? " / " + o.sub : "");
+    document.getElementById("modal-manifesto").textContent = o.manifesto || "（公約なし）";
+
+    var aid = o.avaId || o.id;
+    if (aid) {
+      modalAva.src = "https://mc-heads.net/avatar/" +
+        encodeURIComponent(String(aid).replace(/^\.+/, "")) + "/64";
+      modalAva.style.display = "";
+      modalAva.onerror = function () { modalAva.style.display = "none"; };
+    } else {
+      modalAva.removeAttribute("src");
+      modalAva.style.display = "none";
+    }
+    modalOverlay.hidden = false;
+  }
+
+  function closeMemberModal() { modalOverlay.hidden = true; }
+
+  document.getElementById("modal-close").addEventListener("click", closeMemberModal);
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) closeMemberModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeMemberModal();
+  });
+
+  // ---------- Web投票 ----------
+  var myToken = "";
+  var myUuid = "";
+  var electionInfo = null;
+  var selectedCandidate = null;
+
+  try {
+    myToken = sessionStorage.getItem("mataku.token") || "";
+    myUuid = sessionStorage.getItem("mataku.uuid") || "";
+  } catch (e) { /* sessionStorage unavailable */ }
+
+  function electionApi(path, options) {
+    var url = (typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "") + path;
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers["Content-Type"] = "application/json";
+    return fetch(url, options).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok || !body.success) {
+          throw new Error(body.message || ("HTTP " + res.status));
+        }
+        return body.data;
+      });
+    });
+  }
+
+  function loadElection() {
+    var qs = myUuid ? ("?uuid=" + encodeURIComponent(myUuid)) : "";
+    electionApi("/api/election" + qs)
+      .then(function (data) {
+        electionInfo = data || {};
+        updateVoteButton();
+      })
+      .catch(function () { electionInfo = null; updateVoteButton(); });
+  }
+
+  function votedCandidateName() {
+    if (!electionInfo || !electionInfo.hasVoted || !electionInfo.myVote) return "";
+    var list = electionInfo.candidates || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].uuid === electionInfo.myVote) return list[i].name;
+    }
+    return "";
+  }
+
+  function updateVoteButton() {
+    var btn = document.getElementById("vote-open-btn");
+    var status = document.getElementById("vote-status");
+    if (!btn) return;
+    var phase = electionInfo && electionInfo.phase;
+    var openable = phase === "voting" || phase === "campaign" || phase === "ended";
+    var banned = !!(electionInfo && electionInfo.banned);
+    if (!openable || (phase === "voting" && banned)) {
+      btn.hidden = true;
+      if (status) {
+        status.textContent = phase === "voting" ? "投票が禁止されています" : "";
+        status.className = "vote-status";
+      }
+      return;
+    }
+    btn.hidden = false;
+    btn.textContent = phase === "voting" ? "🗳 投票する" :
+      (phase === "campaign" ? "候補者を見る" : "結果を見る");
+    if (status) {
+      if (phase === "voting" && electionInfo.hasVoted) {
+        status.textContent = "投票済み: " + (votedCandidateName() || "候補者");
+        status.className = "vote-status voted";
+      } else if (phase === "voting" && !myToken) {
+        status.textContent = "ログインすると投票できます";
+        status.className = "vote-status";
+      } else if (phase === "campaign") {
+        status.textContent = "公示期間中です";
+        status.className = "vote-status";
+      } else if (phase === "ended") {
+        status.textContent = "投票は終了しました";
+        status.className = "vote-status";
+      } else {
+        status.textContent = "";
+        status.className = "vote-status";
+      }
+    }
+  }
+
+  function showVotePanel(show) {
+    document.getElementById("stage-panel").hidden = show;
+    document.getElementById("vote-panel").hidden = !show;
+    if (show) {
+      selectedCandidate = null;
+      renderCandidates();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function renderCandidates() {
+    var list = document.getElementById("candidate-list");
+    var msg = document.getElementById("vote-message");
+    var phaseBadge = document.getElementById("vote-phase");
+    if (msg) { msg.textContent = ""; msg.className = ""; }
+    if (!electionInfo) {
+      list.innerHTML = '<div class="vote-empty">選挙情報を取得できませんでした。</div>';
+      updateVoteConfirm();
+      return;
+    }
+    if (phaseBadge) {
+      phaseBadge.textContent = electionInfo.phase === "voting" ? "投票期間" :
+        (electionInfo.phase === "campaign" ? "公示期間" : (electionInfo.phase === "ended" ? "選挙終了" : ""));
+      phaseBadge.className = "election-badge " + (electionInfo.phase === "voting" ? "voting" :
+        (electionInfo.phase === "ended" ? "ended" : "campaign"));
+      phaseBadge.hidden = !electionInfo.phase;
+    }
+    var title = document.getElementById("vote-title");
+    if (title) {
+      title.textContent = electionInfo.phase === "voting" ? "衆議院選挙中！" :
+        (electionInfo.phase === "campaign" ? "[公示中]" :
+        (electionInfo.phase === "ended" ? "選挙終了" : ""));
+    }
+    var candidates = electionInfo.candidates || [];
+    if (!candidates.length) {
+      list.innerHTML = '<div class="vote-empty">候補者がいません。</div>';
+      updateVoteConfirm();
+      return;
+    }
+    list.innerHTML = "";
+    var myVote = electionInfo.myVote || "";
+    var canVote = electionInfo.phase === "voting" && !electionInfo.hasVoted && !electionInfo.banned && !!myToken;
+    candidates.forEach(function (c) {
+      var card = el("div", "cand-card");
+      var top = el("div", "cand-top");
+      var img = document.createElement("img");
+      img.className = "cand-ava";
+      img.src = "https://mc-heads.net/avatar/" + encodeURIComponent(c.uuid) + "/64";
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = function () { img.style.display = "none"; };
+      top.appendChild(img);
+      var nameWrap = el("div", "cand-name");
+      nameWrap.style.cssText = "min-width:0;flex:1;";
+      var nm = el("div", "cand-name");
+      nm.textContent = cleanName(c.name) || "名称未設定";
+      var meta = el("div", "cand-meta");
+      meta.textContent = (c.party || INDEP) + (c.nickname && c.nickname !== c.name ? " / " + c.nickname : "");
+      nameWrap.appendChild(nm);
+      nameWrap.appendChild(meta);
+      top.appendChild(nameWrap);
+      card.appendChild(top);
+
+      var mani = el("div", "cand-manifesto");
+      mani.textContent = c.manifesto || "（公約なし）";
+      if (c.manifesto) {
+        mani.title = "クリックで公約を表示";
+        mani.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          openMemberModal({
+            name: cleanName(c.name) || "名称未設定",
+            party: c.party || INDEP, seats: 0, sub: "",
+            manifesto: c.manifesto, avaId: c.uuid, id: c.uuid
+          });
+        });
+      }
+      card.appendChild(mani);
+
+      var foot = el("div", "cand-foot");
+      if (c.votes != null) {
+        var votes = el("span", "cand-votes");
+        votes.textContent = "得票 " + Number(c.votes || 0).toLocaleString("ja-JP");
+        foot.appendChild(votes);
+      }
+      if (myVote === c.uuid) {
+        var tag = el("span", "cand-voted-tag");
+        tag.textContent = "✓ 投票済み";
+        foot.appendChild(tag);
+      }
+      card.appendChild(foot);
+      card.dataset.uuid = c.uuid;
+      if (canVote) {
+        card.classList.add("selectable");
+        if (selectedCandidate === c.uuid) card.classList.add("selected");
+        card.addEventListener("click", function () { selectCandidate(c.uuid); });
+      }
+      list.appendChild(card);
+    });
+    updateVoteConfirm();
+  }
+
+  function selectCandidate(uuid) {
+    if (!electionInfo || electionInfo.phase !== "voting" || electionInfo.hasVoted ||
+        electionInfo.banned || !myToken) return;
+    selectedCandidate = (selectedCandidate === uuid) ? null : uuid;
+    var cards = document.querySelectorAll("#candidate-list .cand-card");
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.toggle("selected", cards[i].dataset.uuid === selectedCandidate);
+    }
+    updateVoteConfirm();
+  }
+
+  function updateVoteConfirm() {
+    var btn = document.getElementById("vote-confirm-btn");
+    if (!btn) return;
+    var canVote = electionInfo && electionInfo.phase === "voting" &&
+      !electionInfo.hasVoted && !electionInfo.banned && !!myToken;
+    if (!canVote) {
+      btn.disabled = true;
+      if (electionInfo && electionInfo.hasVoted) {
+        btn.textContent = "投票済みです";
+      } else if (electionInfo && electionInfo.banned) {
+        btn.textContent = "投票できません";
+      } else if (electionInfo && electionInfo.phase === "campaign") {
+        btn.textContent = "公示期間中です";
+      } else if (electionInfo && electionInfo.phase === "ended") {
+        btn.textContent = "投票は終了しました";
+      } else if (!myToken) {
+        btn.textContent = "ログインすると投票できます";
+      } else {
+        btn.textContent = "投票する";
+      }
+      return;
+    }
+    if (!selectedCandidate) {
+      btn.disabled = true;
+      btn.textContent = "候補者を選択してください";
+      return;
+    }
+    btn.disabled = false;
+    btn.textContent = "投票する";
+  }
+
+  function doVote() {
+    var btn = document.getElementById("vote-confirm-btn");
+    if (!myToken) {
+      showVoteMessage("ログインしていません。", false);
+      return;
+    }
+    if (!selectedCandidate) {
+      showVoteMessage("候補者を選択してください。", false);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "投票中...";
+    electionApi("/api/election/vote", {
+      method: "POST",
+      body: JSON.stringify({ token: myToken, candidate: selectedCandidate })
+    })
+      .then(function () {
+        showVoteMessage("投票しました。", true);
+        electionInfo.hasVoted = true;
+        electionInfo.myVote = selectedCandidate;
+        selectedCandidate = null;
+        updateVoteButton();
+        renderCandidates();
+        setTimeout(function () { load(); }, 800);
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        updateVoteConfirm();
+        showVoteMessage(err.message || "投票に失敗しました。", false);
+        loadElection();
+      });
+  }
+
+  function showVoteMessage(text, ok) {
+    var msg = document.getElementById("vote-message");
+    if (!msg) return;
+    msg.textContent = text;
+    msg.className = ok ? "ok" : "err";
+  }
+
+  document.getElementById("vote-open-btn").addEventListener("click", function () {
+    showVotePanel(true);
+  });
+  document.getElementById("vote-back-btn").addEventListener("click", function () {
+    showVotePanel(false);
+  });
+  document.getElementById("vote-confirm-btn").addEventListener("click", doVote);
+
+  // ---------- ログインエリア ----------
+  function initLoginArea() {
+    var loginBtn = document.getElementById("login-btn");
+    var userBox = document.getElementById("login-user");
+    var ava = document.getElementById("login-ava");
+    var nameEl = document.getElementById("login-name");
+    if (!loginBtn || !userBox) return;
+    var token = "", username = "", uuid = "";
+    try {
+      token = sessionStorage.getItem("mataku.token") || "";
+      username = sessionStorage.getItem("mataku.username") || "";
+      uuid = sessionStorage.getItem("mataku.uuid") || "";
+    } catch (e) { /* sessionStorage unavailable */ }
+    function clearSession() {
+      try {
+        sessionStorage.removeItem("mataku.token");
+        sessionStorage.removeItem("mataku.username");
+        sessionStorage.removeItem("mataku.uuid");
+      } catch (e) { /* ignore */ }
+      myToken = "";
+      myUuid = "";
+      if (typeof updateVoteButton === "function") updateVoteButton();
+    }
+    function showLogin() {
+      loginBtn.hidden = false;
+      userBox.hidden = true;
+    }
+    function showUser() {
+      loginBtn.hidden = true;
+      userBox.hidden = false;
+      if (nameEl) nameEl.textContent = username;
+      if (ava) {
+        var id = uuid || username;
+        if (id) {
+          ava.src = "https://mc-heads.net/avatar/" + encodeURIComponent(id) + "/64";
+          ava.onerror = function () { ava.style.display = "none"; };
+        } else {
+          ava.style.display = "none";
+        }
+      }
+    }
+    if (!token || !username) {
+      showLogin();
+      return;
+    }
+    fetch((typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "") + "/api/auth/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: token, username: username })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        if (body && body.success) {
+          showUser();
+        } else {
+          clearSession();
+          showLogin();
+        }
+      })
+      .catch(showLogin);
+  }
+
+  initLoginArea();
+  setupToggle();
+  load();
+  setInterval(updateElectionBadge, 60000);
+  setInterval(loadElection, 60000);
+})();
+</script>
+</body>
+</html>

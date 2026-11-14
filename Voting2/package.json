@@ -1,0 +1,8 @@
+{
+  "name": "mataku-account-page",
+  "version": "1.0.0",
+  "description": "Static login page for Mataku Account",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
