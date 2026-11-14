@@ -11,4 +11,4 @@
 // const API_BASE_URL = 'http://n3.host.ringonw.com:3396';
 
 // 本番用（Cloudflare Workersプロキシ）:
-const API_BASE_URL = 'https://white-darkness-5e27.kiiro0072.workers.dev';
+const API_BASE_URL = 'https://matakusrvsyuin.kiiro0072.workers.dev/';
