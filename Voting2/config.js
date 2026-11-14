@@ -7,4 +7,4 @@
 //   'http://your-domain.com:8080'
 //   'http://localhost:8080' （ローカルテスト用）
 // ============================================================
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'http://n3.host.ringonw.com:3396';
